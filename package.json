@@ -2,14 +2,16 @@
   "name": "mizuki",
   "version": "0.0.1",
   "description": "discord bot that has cute side in it",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/rest": "^1.5.0",
+    "axios": "^1.3.2",
     "discord.js": "^14.7.1",
     "dns": "^0.2.2",
     "dotenv": "^16.0.3",
