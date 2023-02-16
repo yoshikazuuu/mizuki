@@ -1,6 +1,6 @@
 {
   "name": "mizuki",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "discord bot that has cute side in it",
   "main": "src/app.js",
   "scripts": {

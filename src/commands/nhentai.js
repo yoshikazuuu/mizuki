@@ -7,34 +7,48 @@ const {
   AttachmentBuilder,
 } = require("discord.js");
 const axios = require("axios");
-const { COMMAND_LOG } = require("../utils/log_template");
+const { COMMAND_LOG, ERROR_LOG } = require("../utils/log_template");
 
 const TIMEOUT = 15000;
+const COOLDOWNS = 15000;
 const NHENTAI_CUSTOM_ENDPOINT = "https://janda.mod.land/nhentai/get?book=";
 const NHENTAI_RANDOM_ENDPOINT = "https://janda.mod.land/nhentai/random";
+
+const cooldowns = new Map();
 const ico = new AttachmentBuilder("assets/nhentai_icon.jpg");
 const wrongUser = new EmbedBuilder().setColor("#F6C1CC").addFields({
   name: "You Really Thought Huh?",
   value: `Only the one who activated this command can click a button`,
 });
 
-async function error(interaction, link, data) {
-  console.log(link);
-  console.log(data);
-  console.log("========== ABOVE DATA CAUSING ERROR! ==========");
-  await interaction.reply({
+function cooldownEmbed(remainingTime) {
+  return new EmbedBuilder().setColor("#F6C1CC").addFields({
+    name: "Take it slow *nii-sama!*",
+    value: `:exclamation: You can use it again in **${remainingTime / 1000}s**`,
+  });
+}
+
+async function errorResponse(interaction, galleryCode, error) {
+  await interaction.editReply({
     embeds: [
-      new EmbedBuilder().setColor("#F6C1CC").addFields({
-        name: "Something's wrong with the API",
-        value: `Try to open it manually using this link!`,
-      }),
+      new EmbedBuilder()
+        .setColor("#F6C1CC")
+        .setTitle(`(Status ${error.response.status})`)
+        .addFields({
+          name: `Something's wrong with the API`,
+          value: `Try to open it manually using this link!`,
+        }),
     ],
     components: [
       new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setLabel("nHentai")
           .setStyle(ButtonStyle.Link)
-          .setURL(link)
+          .setURL(
+            galleryCode
+              ? `https://nhentai.net/g/${galleryCode}`
+              : `https://nhentai.net/random`
+          )
       ),
     ],
   });
@@ -116,69 +130,52 @@ function embed_reader(interaction, page_number, data) {
 async function nhreader(data, interaction) {
   let page_number = 0;
 
-  const filter = (i) => {
-    if (i.user.id === interaction.member.user.id) return true;
-    return i.reply({ embeds: [wrongUser], ephemeral: true });
-  };
-
-  const collector = interaction.channel.createMessageComponentCollector({
-    filter,
-    time: TIMEOUT,
-  });
-
-  collector.on("collect", async (i) => {
-    if (i.customId === "next") {
-      page_number += 1;
-      if (page_number == data.data.image.length) {
-        page_number = data.data.image.length - 1;
-      }
-
-      await i.update({
-        embeds: [embed_reader(interaction, page_number, data)],
-        components: [buttons(page_number, data)],
-        files: [ico],
-      });
-    } else if (i.customId === "prev") {
-      page_number -= 1;
-      if (page_number == -1) {
-        page_number = 0;
-      }
-
-      await i.update({
-        embeds: [embed_reader(interaction, page_number, data)],
-        components: [buttons(page_number, data)],
-        files: [ico],
-      });
-    } else if (i.customId === "first") {
-      page_number = 0;
-
-      await i.update({
-        embeds: [embed_reader(interaction, page_number, data)],
-        components: [buttons(page_number, data)],
-        files: [ico],
-      });
-    } else if (i.customId === "last") {
-      page_number = data.data.image.length - 1;
-
-      await i.update({
-        embeds: [embed_reader(interaction, page_number, data)],
-        components: [buttons(page_number, data)],
-        files: [ico],
-      });
-    }
-  });
-
-  await interaction.reply({
+  let m = await interaction.followUp({
     embeds: [embed_reader(interaction, page_number, data)],
     components: [buttons(page_number, data)],
     files: [ico],
   });
 
-  setTimeout(() => {
-    interaction.editReply({
+  const filter = (button) => {
+    if (button.user.id === interaction.member.user.id) return true;
+    return button.reply({ embeds: [wrongUser], ephemeral: true });
+  };
+
+  const collector = m.createMessageComponentCollector({
+    filter,
+    time: TIMEOUT,
+  });
+
+  collector.on("collect", async (i) => {
+    switch (i.customId) {
+      case "next":
+        page_number = Math.min(page_number + 1, data.data.image.length - 1);
+        break;
+      case "prev":
+        page_number = Math.max(page_number - 1, 0);
+        break;
+      case "first":
+        page_number = 0;
+        break;
+      case "last":
+        page_number = data.data.image.length - 1;
+        break;
+      default:
+        break;
+    }
+
+    await i.update({
+      embeds: [embed_reader(interaction, page_number, data)],
+      components: [buttons(page_number, data)],
+      files: [ico],
+    });
+  });
+
+  collector.on("end", async () => {
+    await m.edit({
       components: [buttons_disabled(page_number, data)],
     });
-  }, TIMEOUT);
+  });
 }
 
 module.exports = {
@@ -202,39 +199,62 @@ module.exports = {
         .setDescription("Read random nHentai gallery.")
     ),
   async execute(interaction) {
-    if (!interaction.channel.nsfw) {
-      // message was not sent in a NSFW channel
-      await interaction.reply("NSFW channel please.");
-      setTimeout(async () => {
-        await interaction.deleteReply();
-      }, 5000);
-    }
-
-    if (interaction.options.getSubcommand() === "read") {
-      const galleryCode = interaction.options.getString("code");
-      const { data } = await axios.get(NHENTAI_CUSTOM_ENDPOINT + galleryCode);
-      const link = data.source;
-
-      if (!data.data) {
-        error(interaction, link, data);
-        return;
+    const galleryCode = interaction.options.getString("code");
+    try {
+      if (!interaction.channel.nsfw) {
+        await interaction.reply("NSFW channel please.");
+        setTimeout(async () => {
+          await interaction.deleteReply();
+        }, 5000);
       }
 
-      COMMAND_LOG(interaction, `/read for ${data.data.optional_title.english}`);
-
-      nhreader(data, interaction);
-    } else if (interaction.options.getSubcommand() === "random") {
-      const { data } = await axios.get(NHENTAI_RANDOM_ENDPOINT);
-      const link = data.source;
-
-      if (!data.success) {
-        error(interaction, link, data);
-        return;
+      const { id } = interaction.member.user;
+      if (cooldowns.has(id)) {
+        const cooldown = cooldowns.get(id);
+        const remainingTime = cooldown - interaction.createdTimestamp;
+        if (remainingTime > 0) {
+          return interaction.reply({
+            embeds: [cooldownEmbed(remainingTime)],
+            ephemeral: true,
+          });
+        }
       }
 
-      COMMAND_LOG(interaction, `/read for ${data.data.optional_title.english}`);
+      const messageCreated = await interaction.deferReply({ fetchReply: true });
 
-      nhreader(data, interaction);
+      cooldowns.set(id, messageCreated.createdTimestamp + COOLDOWNS);
+
+      if (interaction.options.getSubcommand() === "read") {
+        const { data } = await axios.get(NHENTAI_CUSTOM_ENDPOINT + galleryCode);
+
+        COMMAND_LOG(
+          interaction,
+          `/read for ${data.data.optional_title.english}`
+        );
+
+        nhreader(data, interaction);
+      } else if (interaction.options.getSubcommand() === "random") {
+        const { data } = await axios.get(NHENTAI_RANDOM_ENDPOINT);
+
+        COMMAND_LOG(
+          interaction,
+          `/read for ${data.data.optional_title.english}`
+        );
+
+        nhreader(data, interaction);
+      }
+
+      setTimeout(() => cooldowns.delete(id), COOLDOWNS);
+    } catch (error) {
+      if (
+        error.response &&
+        (error.response.status >= 400 || error.response.status <= 499)
+      ) {
+        ERROR_LOG(error);
+        errorResponse(interaction, galleryCode, error);
+      } else {
+        ERROR_LOG(error);
+      }
     }
   },
 };

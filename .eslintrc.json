@@ -10,7 +10,7 @@
   },
   "rules": {
     "no-console": "off",
-    "indent": ["error", 2],
+    "indent": ["error", 2, { "SwitchCase": 1 }],
     "linebreak-style": ["error", "windows"],
     "semi": ["warn", "always"],
     "no-unused-vars": ["warn", { "vars": "local", "args": "after-used", "ignoreRestSiblings": true }]
