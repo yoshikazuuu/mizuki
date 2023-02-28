@@ -27,29 +27,32 @@ const BgCyan = "\x1b[46m";
 const BgWhite = "\x1b[47m";
 const BgGray = "\x1b[100m";
 
-var date = new Date().toLocaleTimeString("en-GB");
-
 function COMMAND_LOG(interaction, commands) {
+  const date = new Date().toLocaleTimeString("en-GB");
   console.log(
     `[${date}][${FgBlue}USAGE${Reset}] - ${interaction.user.username}#${interaction.user.discriminator} used ${FgCyan}${commands}${Reset}`
   );
 }
 
 function ERROR_LOG(error) {
+  const date = new Date().toLocaleTimeString("en-GB");
   console.log(`[${date}][${BgRed}ERROR${Reset}] - ${FgYellow}${error}${Reset}`);
 }
 
 function PREP_LOG(message) {
+  const date = new Date().toLocaleTimeString("en-GB");
   console.log(`[${date}][${FgGray}PREPPING${Reset}] - ${message}`);
 }
 
 function READY_LOG(interaction) {
+  const date = new Date().toLocaleTimeString("en-GB");
   console.log(
     `[${date}][${FgGreen}START${Reset}] - Ready! Logged in as ${FgMagenta}${interaction.user.tag}${Reset}`
   );
 }
 
 function WARNING_LOG(message) {
+  const date = new Date().toLocaleTimeString("en-GB");
   console.log(`[${date}][${FgYellow}WARNING${Reset}] - ${message}`);
 }
 

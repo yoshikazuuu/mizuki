@@ -17,6 +17,7 @@
     "dotenv": "^16.0.3",
     "http": "0.0.1-security",
     "https": "^1.0.0",
+    "mangadex-full-api": "^5.12.1",
     "nhentai-api": "^3.4.3"
   },
   "devDependencies": {

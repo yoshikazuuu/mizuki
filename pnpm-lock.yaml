@@ -9,6 +9,7 @@ specifiers:
   eslint: ^8.33.0
   http: 0.0.1-security
   https: ^1.0.0
+  mangadex-full-api: ^5.12.1
   nhentai-api: ^3.4.3
 
 dependencies:
@@ -19,6 +20,7 @@ dependencies:
   dotenv: 16.0.3
   http: 0.0.1-security
   https: 1.0.0
+  mangadex-full-api: 5.12.1
   nhentai-api: 3.4.3
 
 devDependencies:
@@ -1110,6 +1112,11 @@ packages:
 
   /lodash/4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+    dev: false
+
+  /mangadex-full-api/5.12.1:
+    resolution: {integrity: sha512-YxkAzHCd9webTo6W7pUlwXEMq+g3PUmgP0IPKFs8no9T5WcenE4VxtvoIAAPiDYa6bgHRljGnCNq28Yhl2c0dA==}
+    engines: {node: '>=12.0.0'}
     dev: false
 
   /media-typer/0.2.0:

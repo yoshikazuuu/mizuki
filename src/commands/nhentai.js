@@ -9,8 +9,8 @@ const {
 const axios = require("axios");
 const { COMMAND_LOG, ERROR_LOG } = require("../utils/log_template");
 
-const TIMEOUT = 15000;
-const COOLDOWNS = 15000;
+const TIMEOUT = 10 * 1000;
+const COOLDOWNS = 0 * 1000;
 const NHENTAI_CUSTOM_ENDPOINT = "https://janda.mod.land/nhentai/get?book=";
 const NHENTAI_RANDOM_ENDPOINT = "https://janda.mod.land/nhentai/random";
 
@@ -36,7 +36,7 @@ async function errorResponse(interaction, galleryCode, error) {
         .setTitle(`(Status ${error.response.status})`)
         .addFields({
           name: `Something's wrong with the API`,
-          value: `Try to open it manually using this link!`,
+          value: `Try again or open it manually using this link.`,
         }),
     ],
     components: [
@@ -52,6 +52,20 @@ async function errorResponse(interaction, galleryCode, error) {
       ),
     ],
   });
+}
+
+function info_buttons(data) {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("read")
+      .setEmoji("📖")
+      .setLabel("Read")
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setLabel("nHentai")
+      .setStyle(ButtonStyle.Link)
+      .setURL(data.source)
+  );
 }
 
 function buttons(page_number, data) {
@@ -80,36 +94,6 @@ function buttons(page_number, data) {
   );
 }
 
-function buttons_disabled(page_number, data) {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("first")
-      .setEmoji("956179957359443988")
-      .setDisabled(true)
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("prev")
-      .setEmoji("956179957644685402")
-      .setDisabled(true)
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("page_number")
-      .setLabel(`${page_number + 1}/${data.data.image.length}`)
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(true),
-    new ButtonBuilder()
-      .setCustomId("next")
-      .setEmoji("956179957464313876")
-      .setDisabled(true)
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("last")
-      .setEmoji("956179957531418655")
-      .setDisabled(true)
-      .setStyle(ButtonStyle.Primary)
-  );
-}
-
 function embed_reader(interaction, page_number, data) {
   return new EmbedBuilder()
     .setColor(0xed2452)
@@ -117,8 +101,8 @@ function embed_reader(interaction, page_number, data) {
       name: "nHentai Reader",
       iconURL: "attachment://nhentai_icon.jpg",
     })
-    .setDescription(`**Artist:** ${data.data.artist[0]}`)
-    .setTitle(data.data.optional_title.english)
+    .setDescription(`**Artist:** ${data.data.artist.join(", ")}`)
+    .setTitle(data.data.optional_title.pretty)
     .setURL(data.source)
     .setImage(data.data.image[page_number])
     .setTimestamp()
@@ -127,12 +111,94 @@ function embed_reader(interaction, page_number, data) {
     });
 }
 
-async function nhreader(data, interaction) {
-  let page_number = 0;
+function embed_info(interaction, data) {
+  return new EmbedBuilder()
+    .setColor(0xed2452)
+    .setAuthor({
+      name: "Details",
+      iconURL: "attachment://nhentai_icon.jpg",
+    })
+    .setTitle(data.data.optional_title.pretty)
+    .addFields(
+      {
+        name: `Tags`,
+        value: `${
+          Array.isArray(data.data.tags) && data.data.tags.length
+            ? data.data.tags.join(", ")
+            : "N/A"
+        }`,
+      },
+      {
+        name: `Language`,
+        value: `${
+          Array.isArray(data.data.language) && data.data.language.length
+            ? data.data.language.join(", ")
+            : "N/A"
+        }`,
+      },
+      {
+        name: `Pages`,
+        value: `${data.data.total.length ? data.data.total : "N/A"}`,
+        inline: true,
+      },
+      {
+        name: `Favorites`,
+        value: `${
+          data.data.num_favorites.length ? data.data.num_favorites : "N/A"
+        }`,
+        inline: true,
+      },
+      {
+        name: `Parodies`,
+        value: `${
+          Array.isArray(data.data.parodies) && data.data.parodies.length
+            ? data.data.parodies.join(", ")
+            : "N/A"
+        }`,
+        inline: true,
+      },
+      {
+        name: `Artists`,
+        value: `${
+          Array.isArray(data.data.artist) && data.data.artist.length
+            ? data.data.artist.join(", ")
+            : "N/A"
+        }`,
+        inline: true,
+      },
+      {
+        name: `Group`,
+        value: `${
+          Array.isArray(data.data.group) && data.data.group.length
+            ? data.data.group.join(", ")
+            : "N/A"
+        }`,
+        inline: true,
+      },
+      {
+        name: `Characters`,
+        value: `${
+          Array.isArray(data.data.characters) && data.data.characters.length
+            ? data.data.characters.join(", ")
+            : "N/A"
+        }`,
+        inline: true,
+      }
+    )
+    .setURL(data.source)
+    .setImage(data.data.image[0])
+    .setTimestamp()
+    .setFooter({
+      text: `Requested by ${interaction.user.username}#${interaction.user.discriminator}`,
+    });
+}
+
+async function nhinfo(data, interaction) {
+  let readingStatus = false;
 
   let m = await interaction.followUp({
-    embeds: [embed_reader(interaction, page_number, data)],
-    components: [buttons(page_number, data)],
+    embeds: [embed_info(interaction, data)],
+    components: [info_buttons(data)],
     files: [ico],
   });
 
@@ -146,7 +212,65 @@ async function nhreader(data, interaction) {
     time: TIMEOUT,
   });
 
+  const buttons = info_buttons(data);
+
   collector.on("collect", async (i) => {
+    if (i.customId === "read") {
+      readingStatus = true;
+      await i.update({
+        embeds: [embed_info(interaction, data)],
+        components: [buttons],
+        files: [ico],
+      });
+      collector.stop();
+      return;
+    }
+  });
+
+  collector.on("end", async () => {
+    if (readingStatus) {
+      await nhreader(data, interaction, true);
+    } else {
+      buttons.components[0].setDisabled(true);
+      await m.edit({
+        components: [buttons],
+      });
+    }
+  });
+}
+
+async function nhreader(data, interaction, info) {
+  let page_number = 0;
+  let m = null;
+  const buttons_embed = buttons(page_number, data);
+
+  if (info) {
+    m = await interaction.editReply({
+      embeds: [embed_reader(interaction, page_number, data)],
+      components: [buttons(page_number, data)],
+      files: [ico],
+    });
+  } else {
+    m = await interaction.followUp({
+      embeds: [embed_reader(interaction, page_number, data)],
+      components: [buttons(page_number, data)],
+      files: [ico],
+    });
+  }
+
+  const filter = (button) => {
+    if (button.user.id === interaction.member.user.id) return true;
+    return button.reply({ embeds: [wrongUser], ephemeral: true });
+  };
+
+  const collector = m.createMessageComponentCollector({
+    filter,
+    time: TIMEOUT,
+  });
+
+  collector.on("collect", async (i) => {
+    collector.resetTimer();
+
     switch (i.customId) {
       case "next":
         page_number = Math.min(page_number + 1, data.data.image.length - 1);
@@ -166,14 +290,18 @@ async function nhreader(data, interaction) {
 
     await i.update({
       embeds: [embed_reader(interaction, page_number, data)],
-      components: [buttons(page_number, data)],
+      components: [buttons_embed],
       files: [ico],
     });
   });
 
   collector.on("end", async () => {
+    for (let i = 0; i < buttons_embed.components.length; i++) {
+      const btn = buttons_embed.components[i];
+      btn.setDisabled(true);
+    }
     await m.edit({
-      components: [buttons_disabled(page_number, data)],
+      components: [buttons_embed],
     });
   });
 }
@@ -197,9 +325,22 @@ module.exports = {
       subcommand
         .setName("random")
         .setDescription("Read random nHentai gallery.")
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("info")
+        .setDescription("Get info about nHentai gallery.")
+        .addStringOption((option) =>
+          option
+            .setName("code")
+            .setDescription("nHentai gallery code.")
+            .setRequired(true)
+        )
     ),
+
   async execute(interaction) {
     const galleryCode = interaction.options.getString("code");
+
     try {
       if (!interaction.channel.nsfw) {
         await interaction.reply("NSFW channel please.");
@@ -219,29 +360,43 @@ module.exports = {
           });
         }
       }
-
       const messageCreated = await interaction.deferReply({ fetchReply: true });
+
+      const { data } = await axios.get(
+        galleryCode
+          ? NHENTAI_CUSTOM_ENDPOINT + galleryCode
+          : NHENTAI_RANDOM_ENDPOINT
+      );
 
       cooldowns.set(id, messageCreated.createdTimestamp + COOLDOWNS);
 
-      if (interaction.options.getSubcommand() === "read") {
-        const { data } = await axios.get(NHENTAI_CUSTOM_ENDPOINT + galleryCode);
+      switch (interaction.options.getSubcommand()) {
+        case "read":
+          COMMAND_LOG(
+            interaction,
+            `/read for ${data.data.optional_title.pretty}`
+          );
 
-        COMMAND_LOG(
-          interaction,
-          `/read for ${data.data.optional_title.english}`
-        );
+          nhreader(data, interaction, false);
+          break;
+        case "random":
+          COMMAND_LOG(
+            interaction,
+            `/random for ${data.data.optional_title.pretty}`
+          );
 
-        nhreader(data, interaction);
-      } else if (interaction.options.getSubcommand() === "random") {
-        const { data } = await axios.get(NHENTAI_RANDOM_ENDPOINT);
+          nhinfo(data, interaction);
+          break;
+        case "info":
+          COMMAND_LOG(
+            interaction,
+            `/info for ${data.data.optional_title.pretty}`
+          );
 
-        COMMAND_LOG(
-          interaction,
-          `/read for ${data.data.optional_title.english}`
-        );
-
-        nhreader(data, interaction);
+          nhinfo(data, interaction);
+          break;
+        default:
+          break;
       }
 
       setTimeout(() => cooldowns.delete(id), COOLDOWNS);
