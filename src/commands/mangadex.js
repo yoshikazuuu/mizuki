@@ -8,16 +8,22 @@ const {
 } = require("discord.js");
 const axios = require("axios");
 const { COMMAND_LOG, ERROR_LOG } = require("../utils/log_template");
-const MANGADEX_ENDPOINT = "https://api.mangadex.org";
 const { username_md, password_md } = require("../../config.json");
+const { lookupService } = require("dns");
 const creds = {
   username: username_md,
   password: password_md,
 };
 
-let sessionToken, expires, refreshToken;
+const ico = new AttachmentBuilder("assets/mangadex_icon.png");
+const MANGADEX_ENDPOINT = "https://api.mangadex.org";
 
-function listChapters(data) {
+let sessionToken, refreshToken;
+
+async function listChapters(interaction, id) {
+  const dexTitle = await mangaInfo(id);
+  const dexData = await searchChapter(id);
+
   const dexChapters = dexData.data.data.map((manga) => ({
     id: manga.id,
     vol: manga.attributes.volume,
@@ -33,22 +39,95 @@ function listChapters(data) {
   });
   const dexChaptersFormatted = sortedDexChapters
     .map(
-      (chapter) =>
-        `Vol. ${chapter.vol} Ch. ${chapter.chapter} - ${chapter.title}`
+      (chapter, index) =>
+        `**${index + 1}.** Vol. ${chapter.vol} Ch. ${chapter.chapter} - ${
+          chapter.title
+        }`
     )
     .join("\n");
+  const cover_hash = dexTitle.data.data.relationships.find(
+    (rel) => rel.type === "cover_art"
+  );
+
+  const manga_title = dexTitle.data.data.attributes.title.en;
+  const coverData = await getCover(cover_hash.id);
   const truncatedChapters = dexChaptersFormatted.slice(0, 2000);
+  const cover_filename = coverData.data.data.attributes.fileName;
+
+  await interaction.editReply({
+    embeds: [
+      embedContents(
+        interaction,
+        id,
+        manga_title,
+        cover_filename,
+        truncatedChapters,
+        true
+      ),
+    ],
+    files: [ico],
+  });
+}
+
+async function listSearchedTitle(interaction, title) {
+  const dexData = await searchManga(title);
+  const dexIDs = dexData.data.data.map((manga) => manga.id);
+  const dexTitles = dexData.data.data
+    .map((manga, index) => `**${index + 1}.** ${manga.attributes.title.en}`)
+    .join("\n");
+
+  console.log(dexIDs);
+  await interaction.editReply({
+    embeds: [
+      embedContents(
+        interaction,
+        title,
+        `Results of: ${title}`,
+        null,
+        dexTitles,
+        false
+      ),
+    ],
+    files: [ico],
+  });
+}
+
+function embedContents(
+  interaction,
+  manga_id,
+  manga_title,
+  cover_filename,
+  contents,
+  isInChapter
+) {
+  let info = "";
+  let url = "";
+  let thumb = "";
+  if (isInChapter) {
+    info = `ID: ${manga_id}`;
+    url = `https://mangadex.org/title/${manga_id}`;
+    thumb = `https://uploads.mangadex.org/covers/${manga_id}/${cover_filename}.256.jpg`;
+  } else {
+    const query = manga_id.replace(/\s+/g, "+");
+    info = `Query: ${manga_id}`;
+    url = `https://mangadex.org/search?q=${query}`;
+    thumb = `attachment://mangadex_icon.png`;
+  }
 
   return new EmbedBuilder()
     .setColor(0xff6740)
     .setAuthor({
-      name: "nHentai Reader",
-      iconURL: "attachment://nhentai_icon.jpg",
-      url: "",
+      name: "Mangadex Reader",
+      iconURL: "attachment://mangadex_icon.png",
     })
-    .setTitle.setURL()
+    .setURL(url)
+    .setThumbnail(thumb)
+    .setDescription(contents)
     .setTimestamp()
-    .setFooter();
+    .setFooter({
+      text: `${info}\nRequested by ${interaction.user.username}#${interaction.user.discriminator}`,
+    })
+    .setTitle(manga_title);
 }
 
 async function errorResponse(interaction, id, error) {
@@ -101,11 +180,23 @@ setInterval(async () => {
 }, 15 * 60 * 1000);
 
 async function searchManga(title) {
+  const order = {
+    rating: "desc",
+    followedCount: "desc",
+  };
+
+  const finalOrderQuery = {};
+
+  for (const [key, value] of Object.entries(order)) {
+    finalOrderQuery[`order[${key}]`] = value;
+  }
+
   const resp = await axios({
     method: "GET",
     url: `${MANGADEX_ENDPOINT}/manga`,
     params: {
       title: title,
+      ...finalOrderQuery,
     },
   });
 
@@ -121,6 +212,24 @@ async function searchChapter(title_id) {
     params: {
       translatedLanguage: languages,
     },
+  });
+
+  return resp;
+}
+
+async function mangaInfo(title_id) {
+  const resp = await axios({
+    method: "GET",
+    url: `${MANGADEX_ENDPOINT}/manga/${title_id}`,
+  });
+
+  return resp;
+}
+
+async function getCover(title_id) {
+  const resp = await axios({
+    method: "GET",
+    url: `${MANGADEX_ENDPOINT}/cover/${title_id}`,
   });
 
   return resp;
@@ -181,24 +290,14 @@ module.exports = {
         case "read": {
           COMMAND_LOG(interaction, `/read`);
 
-          const dexData = await searchChapter(id);
-
-          await interaction.editReply(truncatedChapters);
-
+          listChapters(interaction, id);
           break;
         }
 
         case "search": {
           COMMAND_LOG(interaction, `/search`);
 
-          const dexData = await searchManga(title_query);
-          const dexIDs = dexData.data.data.map((manga) => manga.id);
-          const dexTitles = dexData.data.data.map(
-            (manga) => manga.attributes.title.en
-          );
-          await interaction
-            .editReply(dexTitles.join("\n"))
-            .then(console.log(dexIDs));
+          listSearchedTitle(interaction, title_query);
           break;
         }
 
