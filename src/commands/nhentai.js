@@ -242,7 +242,7 @@ async function nhinfo(data, interaction) {
 async function nhreader(data, interaction, info) {
   let m = null;
   let page_number = 0;
-  const buttons_embed = buttons(page_number, data);
+  let buttons_embed = buttons(page_number, data);
 
   if (info) {
     m = await interaction.editReply({
