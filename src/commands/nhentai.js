@@ -54,7 +54,7 @@ async function errorResponse(interaction, galleryCode, error) {
   });
 }
 
-function info_buttons(data) {
+function info_buttons(title_link, source) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("read")
@@ -62,9 +62,9 @@ function info_buttons(data) {
       .setLabel("Read")
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
-      .setLabel("nHentai")
+      .setLabel(title_link)
       .setStyle(ButtonStyle.Link)
-      .setURL(data.source)
+      .setURL(source)
   );
 }
 
@@ -195,10 +195,11 @@ function embed_info(interaction, data) {
 
 async function nhinfo(data, interaction) {
   let readingStatus = false;
+  const buttons = info_buttons("nHentai", data.source);
 
   let m = await interaction.followUp({
     embeds: [embed_info(interaction, data)],
-    components: [info_buttons(data)],
+    components: [buttons],
     files: [ico],
   });
 
@@ -211,8 +212,6 @@ async function nhinfo(data, interaction) {
     filter,
     time: TIMEOUT,
   });
-
-  const buttons = info_buttons(data);
 
   collector.on("collect", async (i) => {
     if (i.customId === "read") {
@@ -247,20 +246,23 @@ async function nhreader(data, interaction, info) {
   if (info) {
     m = await interaction.editReply({
       embeds: [embed_reader(interaction, page_number, data)],
-      components: [buttons(page_number, data)],
+      components: [buttons_embed],
       files: [ico],
     });
   } else {
     m = await interaction.followUp({
       embeds: [embed_reader(interaction, page_number, data)],
-      components: [buttons(page_number, data)],
+      components: [buttons_embed],
       files: [ico],
     });
   }
 
   const filter = (button) => {
-    if (button.user.id === interaction.member.user.id) return true;
-    return button.reply({ embeds: [wrongUser], ephemeral: true });
+    if (button.user.id !== interaction.member.user.id) {
+      button.reply({ embeds: [wrongUser], ephemeral: true });
+      return false;
+    }
+    return true;
   };
 
   const collector = m.createMessageComponentCollector({
@@ -287,6 +289,8 @@ async function nhreader(data, interaction, info) {
       default:
         break;
     }
+
+    buttons_embed = buttons(page_number, data);
 
     await i.update({
       embeds: [embed_reader(interaction, page_number, data)],
