@@ -356,9 +356,6 @@ module.exports = {
           ],
           ephemeral: true,
         });
-        setTimeout(async () => {
-          await interaction.deleteReply();
-        }, 10000);
       }
 
       const { id } = interaction.member.user;

@@ -682,7 +682,10 @@ module.exports = {
         case "download":
           COMMAND_LOG(interaction, `/download`);
 
-          await interaction.editReply(id);
+          await interaction.editReply({
+            contents: `On-progress`,
+            ephemeral: true,
+          });
           break;
         default:
           break;
