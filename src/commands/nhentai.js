@@ -9,8 +9,8 @@ const {
 const axios = require("axios");
 const { COMMAND_LOG, ERROR_LOG } = require("../utils/log_template");
 
-const TIMEOUT = 10 * 1000;
-const COOLDOWNS = 0 * 1000;
+const TIMEOUT = 60 * 1000;
+const COOLDOWNS = 10 * 1000;
 const NHENTAI_CUSTOM_ENDPOINT = "https://janda.mod.land/nhentai/get?book=";
 const NHENTAI_RANDOM_ENDPOINT = "https://janda.mod.land/nhentai/random";
 
@@ -347,10 +347,18 @@ module.exports = {
 
     try {
       if (!interaction.channel.nsfw) {
-        await interaction.reply("NSFW channel please.");
+        await interaction.reply({
+          embed: [
+            new EmbedBuilder().setColor("#F6C1CC").addFields({
+              name: "NSFW Channel please... *nii-sama!*",
+              value: `Please don't make other people uncomfortable.`,
+            }),
+          ],
+          ephemeral: true,
+        });
         setTimeout(async () => {
           await interaction.deleteReply();
-        }, 5000);
+        }, 10000);
       }
 
       const { id } = interaction.member.user;

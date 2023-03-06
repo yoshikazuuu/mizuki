@@ -35,25 +35,27 @@ module.exports = {
 
         const fetchUser = async (id) => rest.get(Routes.user(id));
 
-        fetchUser(id).then((id) => {
-          interaction.reply({
-            embeds: [
-              new EmbedBuilder()
-                .setColor("#F6C1CC")
-                .setAuthor({
-                  name: "User Info",
-                })
-                .setTitle(`${id.username}#${id.discriminator}'s avatar.`)
-                .setImage(
-                  `https://cdn.discordapp.com/avatars/${id.id}/${id.avatar}.webp?size=512`
-                )
-                .setTimestamp()
-                .setFooter({
-                  text: `Requested by ${interaction.user.username}#${interaction.user.discriminator}`,
-                }),
-            ],
-          });
-        });
+        fetchUser(id)
+          .then((id) => {
+            interaction.reply({
+              embeds: [
+                new EmbedBuilder()
+                  .setColor("#F6C1CC")
+                  .setAuthor({
+                    name: "User Info",
+                  })
+                  .setTitle(`${id.username}#${id.discriminator}'s avatar.`)
+                  .setImage(
+                    `https://cdn.discordapp.com/avatars/${id.id}/${id.avatar}.webp?size=512`
+                  )
+                  .setTimestamp()
+                  .setFooter({
+                    text: `Requested by ${interaction.user.username}#${interaction.user.discriminator}`,
+                  }),
+              ],
+            });
+          })
+          .catch((e) => ERROR_LOG(e));
       }
     } catch (e) {
       ERROR_LOG(e);
