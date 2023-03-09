@@ -17,6 +17,12 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 // Loading commands
 client.commands = new Collection();
 
+// Check if configs folder exists or not if not create it
+if (!fs.existsSync("configs")) {
+  PREP_LOG(`Create configs folder.`);
+  fs.mkdirSync("configs");
+}
+
 // Read all commands file
 const commands = [];
 const commandsPath = path.join(__dirname, "commands");
@@ -80,11 +86,6 @@ for (const file of eventFiles) {
   } else {
     client.on(event.name, (...args) => event.execute(...args));
   }
-}
-
-// Check if configs folder exists or not if not create it
-if (!fs.existsSync("configs")) {
-  fs.mkdirSync("configs");
 }
 
 // Log in to Discord with your client's token
