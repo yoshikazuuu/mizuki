@@ -49,6 +49,11 @@ const rest = new REST({ version: "10" }).setToken(token);
       .then(() => PREP_LOG("Successfully deleted all application commands."))
       .catch(console.error);
 
+    await rest
+      .put(Routes.applicationGuildCommands(clientId, guildId), { body: [] })
+      .then(() => PREP_LOG("Successfully deleted all application commands."))
+      .catch(console.error);
+
     PREP_LOG(`Started refreshing ${commands.length} application (/) commands.`);
 
     // The put method is used to fully refresh all commands in the guild with the current set
