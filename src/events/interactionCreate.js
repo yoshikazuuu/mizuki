@@ -1,5 +1,5 @@
 const { Events } = require("discord.js");
-const { ERROR_LOG, COMMAND_LOG } = require("../utils/log_template");
+const { ERROR_LOG, COMMAND_LOG, ANON_LOG } = require("../utils/log_template");
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -10,6 +10,8 @@ module.exports = {
       if (!command) {
         ERROR_LOG(`No command matching ${interaction.commandName} was found.`);
         return;
+      } else if (interaction.commandName == "confess") {
+        ANON_LOG(interaction.commandName);
       } else {
         COMMAND_LOG(interaction, interaction.commandName);
       }
@@ -24,13 +26,11 @@ module.exports = {
         });
       }
     } else if (interaction.isButton()) {
-      const { customId } = interaction;
-
+      // const { customId } = interaction;
       // if (!button) {
       //   ERROR_LOG(`No button operation was found.`);
       //   return;
       // }
-
       // try {
       //   await button.execute(interaction);
       // } catch (error) {

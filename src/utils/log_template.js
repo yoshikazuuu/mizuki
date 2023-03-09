@@ -56,4 +56,18 @@ function WARNING_LOG(message) {
   console.log(`[${date}][${FgYellow}WARNING${Reset}] - ${message}`);
 }
 
-module.exports = { COMMAND_LOG, ERROR_LOG, READY_LOG, WARNING_LOG, PREP_LOG };
+function ANON_LOG(commands) {
+  const date = new Date().toLocaleTimeString("en-GB");
+  console.log(
+    `[${date}][${FgBlue}USAGE${Reset}] - Anon used ${FgCyan}${commands}${Reset}`
+  );
+}
+
+module.exports = {
+  COMMAND_LOG,
+  ERROR_LOG,
+  READY_LOG,
+  WARNING_LOG,
+  PREP_LOG,
+  ANON_LOG,
+};
