@@ -26,8 +26,12 @@ module.exports = {
       // Check if the command was used in the specified channel
       if (!fs.existsSync("configs/config_confess.json")) {
         interaction.reply({
-          color: 0xf6c1cc,
-          description: "No confession channels configured.",
+          embeds: [
+            {
+              color: 0xf6c1cc,
+              description: "No confession channels configured.",
+            },
+          ],
         });
         return;
       } else {
