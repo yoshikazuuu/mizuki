@@ -24,23 +24,32 @@ module.exports = {
   async execute(interaction) {
     try {
       // Check if the command was used in the specified channel
-      const configData = JSON.parse(
-        fs.readFileSync("configs/config_confess.json")
-      );
-      const guildID = interaction.guildId;
-
-      // Check if the guild has any allowed channels
-      if (!configData[guildID].includes(interaction.channel.id)) {
+      if (!fs.existsSync("configs/config_confess.json")) {
         interaction.reply({
-          embeds: [
-            {
-              color: 0xf6c1cc,
-              description: "Confess can't be used in this channel, *nii-sama!*",
-            },
-          ],
-          ephemeral: true,
+          color: 0xf6c1cc,
+          description: "No confession channels configured.",
         });
         return;
+      } else {
+        const configData = JSON.parse(
+          fs.readFileSync("configs/config_confess.json")
+        );
+        const guildID = interaction.guildId;
+
+        // Check if the guild has any allowed channels
+        if (!configData[guildID].includes(interaction.channel.id)) {
+          interaction.reply({
+            embeds: [
+              {
+                color: 0xf6c1cc,
+                description:
+                  "Confess can't be used in this channel, *nii-sama!*",
+              },
+            ],
+            ephemeral: true,
+          });
+          return;
+        }
       }
 
       await interaction.deferReply({ ephemeral: true });
