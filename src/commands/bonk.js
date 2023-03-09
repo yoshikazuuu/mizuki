@@ -26,10 +26,7 @@ module.exports = {
       await interaction.deferReply();
 
       const idBonker = interaction.user.id;
-      const idBonked = interaction.options
-        .getString("user")
-        .match(/\d+/g)
-        .join("");
+      const idBonked = interaction.options.getUser("user").id;
 
       // Define a cache object to store fetched user data
       const userCache = {};

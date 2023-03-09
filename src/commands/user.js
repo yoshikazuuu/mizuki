@@ -26,12 +26,7 @@ module.exports = {
   async execute(interaction) {
     try {
       if (interaction.options.getSubcommand() === "avatar") {
-        let id = null;
-        if (interaction.options.getString("user") === null) {
-          id = interaction.user.id;
-        } else {
-          id = interaction.options.getString("user").match(/\d+/g).join("");
-        }
+        const id = interaction.options.getUser("user").id;
 
         const fetchUser = async (id) => rest.get(Routes.user(id));
 

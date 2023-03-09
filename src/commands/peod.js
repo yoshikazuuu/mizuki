@@ -62,7 +62,7 @@ module.exports = {
       subcommand
         .setName("catch")
         .setDescription("Catch the peod user.")
-        .addMentionableOption((option) =>
+        .addUserOption((option) =>
           option
             .setName("user")
             .setDescription("Tag the peod.")
@@ -76,7 +76,7 @@ module.exports = {
 
       if (interaction.options.getSubcommand() === "catch") {
         COMMAND_LOG(interaction, "/catch");
-        const id = interaction.options.getString("user").match(/\d+/g).join("");
+        const id = interaction.options.getUser("user").id;
 
         // Fetch userID and format it to Discord discriminator
         const fetchUser = async (id) => rest.get(Routes.user(id));
