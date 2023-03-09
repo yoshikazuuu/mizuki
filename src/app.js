@@ -84,5 +84,11 @@ for (const file of eventFiles) {
   }
 }
 
+// Check if configs folder exists or not if not create it
+const configPath = path.join(__dirname, "configs");
+if (!fs.existsSync(configPath)) {
+  fs.mkdirSync(configPath);
+}
+
 // Log in to Discord with your client's token
 client.login(token);
