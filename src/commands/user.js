@@ -14,7 +14,7 @@ module.exports = {
       subcommand
         .setName("avatar")
         .setDescription("Show user's avatar.")
-        .addStringOption((option) =>
+        .addMentionableOption((option) =>
           option
             .setName("user")
             .setDescription(

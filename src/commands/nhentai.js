@@ -348,7 +348,7 @@ module.exports = {
     try {
       if (!interaction.channel.nsfw) {
         await interaction.reply({
-          embed: [
+          embeds: [
             new EmbedBuilder().setColor("#F6C1CC").addFields({
               name: "NSFW Channel please... *nii-sama!*",
               value: `Please don't make other people uncomfortable.`,

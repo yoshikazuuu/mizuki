@@ -1,10 +1,13 @@
-const { SlashCommandBuilder, AttachmentBuilder } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  AttachmentBuilder,
+  EmbedBuilder,
+} = require("discord.js");
 const { ERROR_LOG } = require("../utils/log_template");
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v10");
 const { token } = require("../../config.json");
 const Canvas = require("@napi-rs/canvas");
-const { EmbedBuilder } = require("discord.js");
 
 const rest = new REST({ version: "10" }).setToken(token);
 
@@ -12,7 +15,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("bonk")
     .setDescription("Bonk.")
-    .addStringOption((option) =>
+    .addUserOption((option) =>
       option
         .setName("user")
         .setDescription("Tag another user or leave it blank to bonk yourself.")

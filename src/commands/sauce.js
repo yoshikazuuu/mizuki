@@ -9,20 +9,37 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("sauce")
     .setDescription("Get the hot sauce.")
-    .addStringOption((option) =>
+    .addAttachmentOption((option) =>
       option
-        .setName("url")
-        .setDescription(
-          "Url from the image. (just upload it first then copy the link [more compatibility on-progress])"
-        )
+        .setName("attachment")
+        .setDescription("Attach an image to get sauce on.")
         .setRequired(true)
     ),
+
   async execute(interaction) {
     try {
       await interaction.deferReply();
 
       // Get the url from the command
-      const url = interaction.options.getString("url");
+      const attach = interaction.options.getAttachment("attachment");
+      let url;
+
+      // Handle the invalid attachment
+      if (!attach.contentType.startsWith("image")) {
+        console.log(attach.contentType);
+        await interaction.editReply({
+          embeds: [
+            {
+              color: 0xf6c1cc,
+              description:
+                ":x: Your attachment is not valid. The file must end in `.png`, `.jpg`, .`jpeg`, or .`gif`",
+            },
+          ],
+        });
+        return;
+      } else {
+        url = attach.attachment;
+      }
 
       // Fetch the data from SauceNAO
       const resp = await axios({

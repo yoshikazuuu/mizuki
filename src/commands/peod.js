@@ -62,7 +62,7 @@ module.exports = {
       subcommand
         .setName("catch")
         .setDescription("Catch the peod user.")
-        .addStringOption((option) =>
+        .addMentionableOption((option) =>
           option
             .setName("user")
             .setDescription("Tag the peod.")
