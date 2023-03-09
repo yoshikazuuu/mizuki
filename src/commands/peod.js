@@ -10,7 +10,7 @@ const rest = new REST({ version: "10" }).setToken(token);
 const GIPHY_ENDPOINT = `https://api.giphy.com/v1/gifs/random?api_key=${giphy_api}&tag=fbi+agents%2C+fugitive%2C+fbi+agent&rating=g`;
 
 function getPeodList(serverId) {
-  const peodData = fs.readFileSync("caught_users.json");
+  const peodData = fs.readFileSync("configs/caught_users.json");
   const peodList = JSON.parse(peodData);
 
   const userList = Object.values(peodList)
@@ -31,7 +31,7 @@ function getPeodList(serverId) {
 }
 
 function addPeodList(id, username, serverId) {
-  const filePath = "caught_users.json";
+  const filePath = "configs/caught_users.json";
   let caughtUsers = {};
   if (fs.existsSync(filePath)) {
     caughtUsers = JSON.parse(fs.readFileSync(filePath));
@@ -48,7 +48,7 @@ function addPeodList(id, username, serverId) {
       caughtUsers[id].servers.push(serverId);
     }
   }
-  fs.writeFileSync(filePath, JSON.stringify(caughtUsers));
+  fs.writeFileSync(filePath, JSON.stringify(caughtUsers, null, 2));
 }
 
 module.exports = {

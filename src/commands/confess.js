@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { ERROR_LOG } = require("../utils/log_template");
 const { EmbedBuilder } = require("discord.js");
+const fs = require("fs");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -22,9 +23,31 @@ module.exports = {
 
   async execute(interaction) {
     try {
+      // Check if the command was used in the specified channel
+      const configData = JSON.parse(
+        fs.readFileSync("configs/config_confess.json")
+      );
+      const guildID = interaction.guildId;
+
+      // Check if the guild has any allowed channels
+      if (!configData[guildID].includes(interaction.channel.id)) {
+        interaction.reply({
+          embeds: [
+            {
+              color: 0xf6c1cc,
+              description: "Confess can't be used in this channel, *nii-sama!*",
+            },
+          ],
+          ephemeral: true,
+        });
+        return;
+      }
+
       await interaction.deferReply({ ephemeral: true });
       const msg = interaction.options.getString("confession");
       const attach = interaction.options.getAttachment("attachment");
+      let image = true;
+      let file;
 
       // Create the embed for the confession
       const embed = new EmbedBuilder()
@@ -36,17 +59,8 @@ module.exports = {
       // Handle the invalid attachment
       if (attach) {
         if (!attach.contentType.startsWith("image")) {
-          console.log(attach.contentType);
-          await interaction.editReply({
-            embeds: [
-              {
-                color: 0xf6c1cc,
-                description:
-                  ":x: Your attachment is not valid. The file must end in `.png`, `.jpg`, .`jpeg`, or .`gif`",
-              },
-            ],
-          });
-          return;
+          image = false;
+          file = attach.attachment;
         } else {
           embed.setImage(attach.attachment);
         }
@@ -55,13 +69,22 @@ module.exports = {
       // Send the confirmation
       await interaction.editReply({
         embeds: [
-          { color: 0xf6c1cc, description: "Your confession has been sent" },
+          {
+            color: 0xf6c1cc,
+            description: "Sending *nii-sama's* confession...  ",
+          },
         ],
         ephemeral: true,
       });
 
       // Send the confession
-      await interaction.channel.send({ embeds: [embed] });
+      if (image) {
+        await interaction.channel.send({ embeds: [embed] });
+      } else {
+        await interaction.channel
+          .send({ embeds: [embed] })
+          .then(async () => await interaction.channel.send({ files: [file] }));
+      }
     } catch (err) {
       ERROR_LOG(err);
       console.error(err);
