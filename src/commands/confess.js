@@ -29,9 +29,11 @@ module.exports = {
           embeds: [
             {
               color: 0xf6c1cc,
-              description: "No confession channels configured.",
+              description:
+                "No confession channels configured.\n**Ask your admin to configure it!**",
             },
           ],
+          ephemeral: true,
         });
         return;
       } else {
