@@ -43,7 +43,7 @@ module.exports = {
         const guildID = interaction.guildId;
 
         // Check if the guild has any allowed channels
-        if (!configData[guildID].includes(interaction.channel.id)) {
+        if (!configData[guildID] || !configData[guildID].includes(interaction.channel.id)) {
           interaction.reply({
             embeds: [
               {

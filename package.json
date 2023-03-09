@@ -4,9 +4,9 @@
   "description": "discord bot that has cute side in it",
   "main": "src/app.js",
   "scripts": {
-    "deploy": "node .",
+    "deploy": "mkdir -p logs && node . > logs/deploy-$(date +%Y-%m-%d-%H-%M-%S).log 2>&1",
     "dev": "node src/app_dev.js"
-  },
+  },  
   "keywords": [],
   "author": "",
   "license": "ISC",
