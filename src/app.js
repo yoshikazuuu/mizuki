@@ -4,7 +4,6 @@ const path = require("node:path");
 const {
   Collection,
   Client,
-  Events,
   GatewayIntentBits,
   REST,
   Routes,

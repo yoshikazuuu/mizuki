@@ -10,17 +10,22 @@ const rest = new REST({ version: "10" }).setToken(token);
 const GIPHY_ENDPOINT = `https://api.giphy.com/v1/gifs/random?api_key=${giphy_api}&tag=fbi+agents%2C+fugitive%2C+fbi+agent&rating=g`;
 
 function getPeodList(serverId) {
-  const peodData = fs.readFileSync("configs/caught_users.json");
-  const peodList = JSON.parse(peodData);
+  const filePath = "configs/caught_users.json";
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
 
-  const userList = Object.values(peodList)
-    .filter((user) => {
-      return user.servers.includes(serverId);
-    })
+  const caughtUsers = JSON.parse(fs.readFileSync(filePath));
+
+  const userList = Object.keys(caughtUsers)
+    .map((id) => caughtUsers[id])
+    .filter((user) =>
+      Object.prototype.hasOwnProperty.call(user.servers, serverId)
+    )
     .map((user) => {
       return {
         username: user.username,
-        count: user.count,
+        count: user.servers[serverId],
       };
     });
 
@@ -39,16 +44,24 @@ function addPeodList(id, username, serverId) {
   if (!caughtUsers[id]) {
     caughtUsers[id] = {
       username: username,
-      count: 1,
-      servers: [serverId],
+      servers: {
+        [serverId]: 1,
+      },
     };
   } else {
-    caughtUsers[id].count += 1;
-    if (!caughtUsers[id].servers.includes(serverId)) {
-      caughtUsers[id].servers.push(serverId);
+    if (!caughtUsers[id].servers[serverId]) {
+      caughtUsers[id].servers[serverId] = 1;
+    } else {
+      caughtUsers[id].servers[serverId] += 1;
     }
   }
-  fs.writeFileSync(filePath, JSON.stringify(caughtUsers, null, 2));
+  const transformedData = {};
+  transformedData[id] = {
+    username: caughtUsers[id].username,
+    servers: caughtUsers[id].servers,
+  };
+  const updatedData = Object.assign({}, caughtUsers, transformedData);
+  fs.writeFileSync(filePath, JSON.stringify(updatedData, null, 2));
 }
 
 module.exports = {
@@ -119,6 +132,16 @@ module.exports = {
           color: 16173260,
           fields: [],
         };
+
+        // Validate the lists
+        if (!lists) {
+          embed.fields[0] = {
+            name: `No peod catched.`,
+            value: `Try to use /peod catch to fill this list!`,
+          };
+          await interaction.editReply({ embeds: [embed] });
+          return;
+        }
 
         // Join the list of users and their counts in the embed's description
         const topUsers = lists.sort((a, b) => b.count - a.count).slice(0, 3);
