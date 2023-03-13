@@ -204,8 +204,11 @@ async function nhinfo(data, interaction) {
   });
 
   const filter = (button) => {
-    if (button.user.id === interaction.member.user.id) return true;
-    return button.reply({ embeds: [wrongUser], ephemeral: true });
+    if (button.user.id !== interaction.member.user.id) {
+      button.reply({ embeds: [wrongUser], ephemeral: true });
+      return false;
+    }
+    return true;
   };
 
   const collector = m.createMessageComponentCollector({

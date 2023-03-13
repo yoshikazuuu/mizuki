@@ -1,8 +1,7 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { Configuration, OpenAIApi } = require("openai");
+const { openai_api, gpt_payload } = require("../../config.json");
 const { ERROR_LOG } = require("../utils/log_template");
-const { openai_api } = require("../../config.json");
-const { EmbedBuilder } = require("discord.js");
 
 const configuration = new Configuration({
   apiKey: openai_api,
@@ -12,7 +11,7 @@ const openai = new OpenAIApi(configuration);
 async function getAnswer(prompt) {
   const resp = await openai.createCompletion({
     model: "text-davinci-003",
-    prompt: `here's my first question ${prompt}`,
+    prompt: `${gpt_payload} ${prompt}`,
     temperature: 1,
     max_tokens: 100,
     top_p: 1,
@@ -30,6 +29,7 @@ module.exports = {
     .addStringOption((option) =>
       option.setName("prompt").setDescription("Your prompt").setRequired(true)
     ),
+
   async execute(interaction) {
     try {
       // Fetch the prompt from the command
@@ -40,17 +40,16 @@ module.exports = {
 
       // Fetch the API
       const { data } = await getAnswer(prompt);
-      // console.log(data.choices[0]);
       let answer = data.choices[0].text;
-//      let index = answer.indexOf("DAN:");
 
-//if (index !== -1) {
-//	answer = answer.substring(index + 4).trim();
-//}
+      // let index = answer.indexOf("DAN:");
+      // if (index !== -1) {
+      //   answer = answer.substring(index + 4).trim();
+      // }
 
-if (answer.startsWith('\n')) {
-  answer = answer.trim().replace(/^[\n\r\s]+/, '');
-}
+      if (answer.startsWith("\n")) {
+        answer = answer.trim().replace(/^[\n\r\s]+/, "");
+      }
 
       // Create the embed for the answer
       const embed = new EmbedBuilder()

@@ -26,34 +26,31 @@ module.exports = {
   async execute(interaction) {
     try {
       if (interaction.options.getSubcommand() === "avatar") {
-        const id = interaction.options.getUser("user").id;
+        let id = interaction.options.getUser("user");
 
-        const fetchUser = async (id) => rest.get(Routes.user(id));
+        id = id ? id.id : interaction.user.id;
 
-        fetchUser(id)
-          .then((id) => {
-            interaction.reply({
-              embeds: [
-                new EmbedBuilder()
-                  .setColor("#F6C1CC")
-                  .setAuthor({
-                    name: "User Info",
-                  })
-                  .setTitle(`${id.username}#${id.discriminator}'s avatar.`)
-                  .setImage(
-                    `https://cdn.discordapp.com/avatars/${id.id}/${id.avatar}.webp?size=512`
-                  )
-                  .setTimestamp()
-                  .setFooter({
-                    text: `Requested by ${interaction.user.username}#${interaction.user.discriminator}`,
-                  }),
-              ],
-            });
+        const data = await rest.get(Routes.user(id));
+
+        const embed = new EmbedBuilder()
+          .setColor("#F6C1CC")
+          .setAuthor({
+            name: "User Info",
           })
-          .catch((e) => ERROR_LOG(e));
+          .setTitle(`${data.username}#${data.discriminator}'s avatar.`)
+          .setImage(
+            `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.webp?size=512`
+          )
+          .setTimestamp()
+          .setFooter({
+            text: `Requested by ${interaction.user.username}#${interaction.user.discriminator}`,
+          });
+
+        await interaction.reply({ embeds: [embed] });
       }
-    } catch (e) {
-      ERROR_LOG(e);
+    } catch (err) {
+      ERROR_LOG(err);
+      console.error(err);
     }
   },
 };
