@@ -4,15 +4,15 @@ description: nHentai commands.
 
 # nHentai
 
-This command is Not Safe For Work!&#x20;
+This command is Not Safe For Work!
 
 {% hint style="danger" %}
-Before that, we consider you who use this command are already **18 y.o** or more enough than 18 y.o! **If you are still **_**underage**_**,** **we recommend don't use this command!** We don't have responsible consequences you receive because of using this command!
+Before that, we consider you who use this command are already **18 y.o** or more enough than 18 y.o! **If you are still \_underage**\_**,** **we recommend don't use this command!** We don't have responsible consequences you receive because of using this command!
 {% endhint %}
 
 ## nHentai reader
 
-Read nHentai gallery via embed.&#x20;
+Read nHentai gallery via embed.
 
 {% hint style="info" %}
 Only works on **NSFW** channels.
@@ -24,7 +24,7 @@ For show details of the gallery. You must provide the gallery ID/code to run thi
 
 > /nhen info \<code>
 
-Paste/type your code/book id into **\<code>**. For example: `/nhen info 177013`
+Paste/type your code/book id into **\<code>**. For example: `/nhen info code:177013`
 
 ### Reading a Gallery
 
@@ -32,7 +32,7 @@ For reading a gallery. You must provide the gallery ID/code to run this command.
 
 > /nhen read \<code>
 
-Paste/type your gallery ID/code into **\<code>**. For example: `/nhen read 177013`
+Paste/type your gallery ID/code into **\<code>**. For example: `/nhen read code:177013`
 
 ### Shows Random Gallery
 
@@ -46,4 +46,4 @@ Get a random gallery.
 
 > ~~/nhen download \<code>~~
 
-~~Paste/type your gallery ID/code into **\<code>**. For example: `/nhen download 177013`~~
+~~Paste/type your gallery ID/code into **\<code>**. For example: `/nhen download code:177013`~~
