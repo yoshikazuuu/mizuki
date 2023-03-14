@@ -5,7 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "deploy": "mkdir -p logs && nodemon . > logs/deploy-$(date +%Y-%m-%d-%H-%M-%S).log 2>&1",
-    "dev": "nodemon src/app_dev.js"
+    "dev": "nodemon src/app_dev.js",
+    "delete": "node src/delete_app.js"
   },
   "keywords": [],
   "author": "",

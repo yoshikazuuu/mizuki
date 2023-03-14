@@ -10,7 +10,6 @@ const {
 } = require("discord.js");
 const {
   discord_clientId,
-  discord_guildId_dev,
   discord_token,
 } = require("../config.json");
 const { WARNING_LOG, PREP_LOG } = require("./utils/log_template");
