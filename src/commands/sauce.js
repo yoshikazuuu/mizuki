@@ -1,7 +1,7 @@
 const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
 const { ERROR_LOG } = require("../utils/log_template");
-const { saucenao } = require("../../config.json");
-const { default: axios } = require("axios");
+const { saucenao_token } = require("../../config.json");
+const axios = require("axios");
 
 const SAUCENAO_ENDPOINT = `https://saucenao.com/search.php`;
 
@@ -50,7 +50,7 @@ module.exports = {
           testmode: "1",
           output_type: "2",
           numres: "5",
-          api_key: saucenao,
+          api_key: saucenao_token,
           url: url,
         },
       });

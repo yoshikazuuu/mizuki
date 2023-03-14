@@ -1,13 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { ERROR_LOG, COMMAND_LOG } = require("../utils/log_template");
-const { REST } = require("@discordjs/rest");
-const { Routes } = require("discord-api-types/v10");
-const { token, giphy_api } = require("../../config.json");
+const { giphy_token } = require("../../config.json");
 const axios = require("axios");
 const fs = require("fs");
 
-const rest = new REST({ version: "10" }).setToken(token);
-const GIPHY_ENDPOINT = `https://api.giphy.com/v1/gifs/random?api_key=${giphy_api}&tag=fbi+agents%2C+fugitive%2C+fbi+agent&rating=g`;
+const GIPHY_ENDPOINT = `https://api.giphy.com/v1/gifs/random?api_key=${giphy_token}&tag=fbi+agents%2C+fugitive%2C+fbi+agent&rating=g`;
 
 function getPeodList(serverId) {
   const filePath = "configs/caught_users.json";
@@ -89,13 +86,9 @@ module.exports = {
 
       if (interaction.options.getSubcommand() === "catch") {
         COMMAND_LOG(interaction, "/catch");
-        const id = interaction.options.getUser("user").id;
+        const id = interaction.options.getUser("user");
 
-        // Fetch userID and format it to Discord discriminator
-        const fetchUser = async (id) => rest.get(Routes.user(id));
-        const username = await fetchUser(id)
-          .then((id) => `${id.username}#${id.discriminator}`)
-          .catch((e) => ERROR_LOG(e));
+        const username = `${id.username}#${id.discriminator}`;
 
         // Get the GIF using the ENDPOINT
         const { data } = await axios({

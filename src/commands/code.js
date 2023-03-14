@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { ERROR_LOG } = require("../utils/log_template");
-const { openai_api } = require("../../config.json");
+const { openai_token } = require("../../config.json");
 const axios = require("axios");
 
 async function getAnswer(language, prompt) {
@@ -9,7 +9,7 @@ async function getAnswer(language, prompt) {
     url: "https://api.openai.com/v1/chat/completions",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${openai_api}`,
+      Authorization: `Bearer ${openai_token}`,
     },
     data: {
       model: "gpt-3.5-turbo",
