@@ -11,8 +11,14 @@ const { COMMAND_LOG, ERROR_LOG } = require("../utils/log_template");
 
 const TIMEOUT = 60 * 1000;
 const COOLDOWNS = 10 * 1000;
-const NHENTAI_CUSTOM_ENDPOINT = "https://janda.mod.land/nhentai/get?book=";
-const NHENTAI_RANDOM_ENDPOINT = "https://janda.mod.land/nhentai/random";
+
+// Main
+// const NHENTAI_CUSTOM_ENDPOINT = "https://janda.mod.land/nhentai/get?book=";
+// const NHENTAI_RANDOM_ENDPOINT = "https://janda.mod.land/nhentai/random";
+
+// Alternative
+const NHENTAI_CUSTOM_ENDPOINT = "https://janda.sinkaroid.org/nhentai/get?book=";
+const NHENTAI_RANDOM_ENDPOINT = "https://janda.sinkaroid.org/nhentai/random";
 
 const cooldowns = new Map();
 const ico = new AttachmentBuilder("assets/nhentai_icon.jpg");

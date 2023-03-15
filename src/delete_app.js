@@ -23,4 +23,3 @@ const rest = new REST({ version: "10" }).setToken(discord_token);
     console.log(err);
   }
 })();
-

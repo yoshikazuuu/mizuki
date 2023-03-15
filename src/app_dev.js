@@ -9,9 +9,9 @@ const {
   Routes,
 } = require("discord.js");
 const {
-  discord_clientId,
+  discord_clientId_dev,
   discord_guildId_dev,
-  discord_token,
+  discord_token_dev,
 } = require("../config.json");
 const { WARNING_LOG, PREP_LOG } = require("./utils/log_template");
 
@@ -49,21 +49,18 @@ for (const file of commandFiles) {
 }
 
 // Reload commands
-const rest = new REST({ version: "10" }).setToken(discord_token);
+const rest = new REST({ version: "10" }).setToken(discord_token_dev);
 
 (async () => {
   try {
-    // Delete existing commands (prevent duplicate)
-    // await rest
-    //   .put(Routes.applicationCommands(discord_clientId), { body: [] })
-    //   .then(() => PREP_LOG("Successfully deleted all application commands."))
-    //   .catch(console.error);
-
     PREP_LOG(`Started refreshing ${commands.length} application (/) commands.`);
 
     // The put method is used to fully refresh all commands in the guild with the current set
     const data = await rest.put(
-      Routes.applicationGuildCommands(discord_clientId, discord_guildId_dev),
+      Routes.applicationGuildCommands(
+        discord_clientId_dev,
+        discord_guildId_dev
+      ),
       {
         body: commands,
       }
@@ -93,4 +90,4 @@ for (const file of eventFiles) {
 }
 
 // Log in to Discord with your client's token
-client.login(discord_token);
+client.login(discord_token_dev);

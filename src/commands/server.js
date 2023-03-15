@@ -44,8 +44,9 @@ module.exports = {
         });
 
       await interaction.reply({ embeds: [server_embed] });
-    } catch (e) {
-      ERROR_LOG(e);
+    } catch (err) {
+      ERROR_LOG(err);
+      console.error(err);
     }
   },
 };
