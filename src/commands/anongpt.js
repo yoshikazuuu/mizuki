@@ -49,7 +49,6 @@ module.exports = {
       let answer = data.choices[0].text;
       let answers = [];
 
-      console.log(data.choices[0]);
       // Check the payload
       if (anongpt_payload) {
         let index = answer.indexOf("DAN:");
@@ -68,7 +67,7 @@ module.exports = {
         prompt = prompt.slice(0, TITLE_LIMIT).concat("...");
       }
 
-      // Handlind the answers if reaching the character limit
+      // Handling the answers if reaching the character limit
       const CHAR_LIMIT = 4050;
       if (answer.length > CHAR_LIMIT) {
         for (let i = 0; i < answer.length; i += CHAR_LIMIT) {
@@ -78,7 +77,6 @@ module.exports = {
       } else {
         answers[0] = answer;
       }
-      console.log(answers);
 
       // Create the embed for the answer
       const embed = new EmbedBuilder()
@@ -122,3 +120,6 @@ module.exports = {
     }
   },
 };
+/*
+How to create a github actions and docker container to deploy a dockerfile for every github push, by trunk based development
+*/
