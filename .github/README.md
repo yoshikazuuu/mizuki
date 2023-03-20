@@ -10,34 +10,44 @@ A discord bot that has a cute side to it. 🎀
 
 ## Getting Started
 
-If you want to just use it, you can [invite](https://discord.com/api/oauth2/authorize?client\_id=1071942056047554670\&permissions=2148133888\&scope=bot%20applications.commands) the bot directly into your server.
+### Invite the bot
+
+If you want to just use it, you can [invite](https://discord.com/api/oauth2/authorize?client_id=1071942056047554670&permissions=2148133888&scope=bot%20applications.commands) the bot directly into your server.
 
 ### Deploy it yourself
 
-1. Clone the repository
+1. Clone the repository.
 
 ```
 git clone https://github.com/yoshikazuuu/mizuki.git
 cd mizuki
 ```
 
-2. Edit the config.example.json to the desired value
+2. Edit the config.example.json to the desired value.
 
 ```
-nano config.example.json
+nano .env.example
 ```
 
-3. Rename the config.example.json to config.json
+3. Rename the config.example.json to config.json.
 
 ```
-mv config.example.json config.json
+mv .env.example .env
 ```
 
-4. Deploy the bot!
+4. Install the dependencies.
+
+```
+npm install -g pnpm
+pnpm i
+```
+
+5. Deploy the bot!
 
 ```
 npm run deploy
 ```
+
 ## Contributing
 
 If you wanted to contribute or make a bot to be more useful, you can just make a pull request.

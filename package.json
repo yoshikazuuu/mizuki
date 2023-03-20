@@ -22,6 +22,7 @@
     "http": "0.0.1-security",
     "https": "^1.0.0",
     "nhentai-api": "^3.4.3",
+    "nodemon": "^2.0.21",
     "openai": "^3.2.1"
   },
   "devDependencies": {
