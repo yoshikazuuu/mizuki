@@ -1,4 +1,4 @@
 {
-  "watch": ["src/", "config.json"],
+  "watch": ["src/", ".env"],
   "ext": "js"
 }

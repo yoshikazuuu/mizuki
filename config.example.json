@@ -1,9 +1,0 @@
-{
-	"discord_token": "https://discord.com/developers/applications",
-	"discord_clientId": "discord/settings/advanced/developer_mode",
-	"discord_guildId_dev": "discord/settings/advanced/developer_mode",
-	"giphy_token": "https://developers.giphy.com/",
-	"saucenao_token": "https://saucenao.com/",
-	"openai_token": "https://platform.openai.com/",
-	"anongpt_payload": ""
-}

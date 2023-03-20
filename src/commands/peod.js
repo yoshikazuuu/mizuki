@@ -1,8 +1,12 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { ERROR_LOG, COMMAND_LOG } = require("../utils/log_template");
-const { giphy_token } = require("../../config.json");
 const axios = require("axios");
 const fs = require("fs");
+
+// Load the env variables
+const dotenv = require("dotenv");
+dotenv.config();
+const giphy_token = process.env.GIPHY_TOKEN;
 
 const GIPHY_ENDPOINT = `https://api.giphy.com/v1/gifs/random?api_key=${giphy_token}&tag=fbi+agents%2C+fugitive%2C+fbi+agent&rating=g`;
 

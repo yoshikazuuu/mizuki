@@ -1,9 +1,11 @@
 const { REST, Routes } = require("discord.js");
-const {
-  discord_clientId,
-  discord_guildId_dev,
-  discord_token,
-} = require("../config.json");
+
+// Load the env variables
+const dotenv = require("dotenv");
+dotenv.config();
+const discord_clientId = process.env.DISCORD_CLIENTID;
+const discord_guildId_dev = process.env.DISCORD_GUILDID_DEV;
+const discord_token = process.env.DISCORD_TOKEN;
 
 const rest = new REST({ version: "10" }).setToken(discord_token);
 (async () => {

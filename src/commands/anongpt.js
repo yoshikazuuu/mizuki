@@ -4,8 +4,13 @@ const {
   AttachmentBuilder,
 } = require("discord.js");
 const { Configuration, OpenAIApi } = require("openai");
-const { openai_token, anongpt_payload } = require("../../config.json");
 const { ERROR_LOG } = require("../utils/log_template");
+
+// Load the env variables
+const dotenv = require("dotenv");
+dotenv.config();
+const openai_token = process.env.OPENAI_TOKEN;
+const anongpt_payload = process.env.ANONGPT_PAYLOAD;
 
 const configuration = new Configuration({
   apiKey: openai_token,

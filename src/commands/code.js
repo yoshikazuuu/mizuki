@@ -1,7 +1,11 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { ERROR_LOG } = require("../utils/log_template");
-const { openai_token } = require("../../config.json");
 const axios = require("axios");
+
+// Load the env variables
+const dotenv = require("dotenv");
+dotenv.config();
+const openai_token = process.env.OPENAI_TOKEN;
 
 async function getAnswer(language, prompt) {
   const resp = await axios({

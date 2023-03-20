@@ -1,7 +1,11 @@
 const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
 const { ERROR_LOG } = require("../utils/log_template");
-const { saucenao_token } = require("../../config.json");
 const axios = require("axios");
+
+// Load the env variables
+const dotenv = require("dotenv");
+dotenv.config();
+const saucenao_token = process.env.SAUCENAO_TOKEN;
 
 const SAUCENAO_ENDPOINT = `https://saucenao.com/search.php`;
 

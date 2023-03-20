@@ -8,11 +8,14 @@ const {
   REST,
   Routes,
 } = require("discord.js");
-const {
-  discord_clientId_dev,
-  discord_guildId_dev,
-  discord_token_dev,
-} = require("../config.json");
+
+// Load the env variables
+const dotenv = require("dotenv");
+dotenv.config();
+const discord_clientId_dev = process.env.DISCORD_CLIENTID_DEV;
+const discord_guildId_dev = process.env.DISCORD_GUILDID_DEV;
+const discord_token_dev = process.env.DISCORD_TOKEN_DEV;
+
 const { WARNING_LOG, PREP_LOG } = require("./utils/log_template");
 
 // Create a new client instance

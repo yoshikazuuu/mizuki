@@ -1,6 +1,6 @@
-node_modules
+node_modules/
+configs/
+logs/
 .env
 config.json
 .DS_Store
-configs/
-logs/
