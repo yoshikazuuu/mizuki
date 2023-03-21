@@ -3,7 +3,7 @@ name: Release - Test, Build & Redeploy
 on:
   push:
     branches:
-      - "releases"
+      - "release"
 
 jobs:
   docker:
