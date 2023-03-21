@@ -1,4 +1,4 @@
-name: Release - Test, Build & Redeploy
+name: Release - Build & Redeploy
 
 on:
   push:

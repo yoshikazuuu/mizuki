@@ -4,12 +4,7 @@ const {
   EmbedBuilder,
 } = require("discord.js");
 const { ERROR_LOG } = require("../utils/log_template");
-const { REST } = require("@discordjs/rest");
-const { Routes } = require("discord-api-types/v10");
-const { token } = require("../../config.json");
 const Canvas = require("@napi-rs/canvas");
-
-const rest = new REST({ version: "10" }).setToken(token);
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -25,35 +20,13 @@ module.exports = {
     try {
       await interaction.deferReply();
 
-      const idBonker = interaction.user.id;
-      const idBonked = interaction.options.getUser("user").id;
+      const userBonker = interaction.user;
+      const userBonked = interaction.options.getUser("user");
 
-      // Define a cache object to store fetched user data
-      const userCache = {};
-      const fetchUser = async (id) => {
-        // Return cached data if available
-        if (userCache[id]) {
-          return userCache[id];
-        }
-
-        const userData = await rest.get(Routes.user(id));
-        // Cache the fetched data
-        userCache[id] = userData;
-        return userData;
-      };
-
-      const [userBonker, userBonked] = await Promise.all([
-        fetchUser(idBonker),
-        fetchUser(idBonked),
-      ]);
-
+      // Load image to canvas
       const [avatarBonker, avatarBonked] = await Promise.all([
-        Canvas.loadImage(
-          `https://cdn.discordapp.com/avatars/${userBonker.id}/${userBonker.avatar}.webp?size=512`
-        ),
-        Canvas.loadImage(
-          `https://cdn.discordapp.com/avatars/${userBonked.id}/${userBonked.avatar}.webp?size=512`
-        ),
+        Canvas.loadImage(`${userBonker.displayAvatarURL()}?size=512`),
+        Canvas.loadImage(`${userBonked.displayAvatarURL()}?size=512`),
       ]);
 
       const usernameBonked = `${userBonked.username}#${userBonked.discriminator}`;
