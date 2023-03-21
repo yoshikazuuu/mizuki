@@ -418,15 +418,16 @@ module.exports = {
       }
 
       setTimeout(() => cooldowns.delete(id), COOLDOWNS);
-    } catch (error) {
+    } catch (err) {
       if (
-        error.response &&
-        (error.response.status >= 400 || error.response.status <= 499)
+        err.response &&
+        (err.response.status >= 400 || err.response.status <= 499)
       ) {
-        ERROR_LOG(error);
-        errorResponse(interaction, galleryCode, error);
+        ERROR_LOG(err);
+        errorResponse(interaction, galleryCode, err);
       } else {
-        ERROR_LOG(error);
+        ERROR_LOG(err);
+        console.error(err);
       }
     }
   },

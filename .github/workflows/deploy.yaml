@@ -1,0 +1,33 @@
+name: Release - Test, Build & Redeploy
+
+on:
+  push:
+    branches:
+      - "releases"
+
+jobs:
+  docker:
+    name: Publish - Docker Hub
+    runs-on: ubuntu-22.04
+    env:
+      REPO: ${{ secrets.DOCKER_REPO }}
+    steps:
+      - uses: actions/checkout@v1
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USER }}
+          -p ${{ secrets.DOCKER_PASS }}
+      - name: Build Docker image
+        run: docker build -t $REPO:latest -t $REPO:${GITHUB_SHA::8} .
+      - name: Publish Docker image
+        run: docker push $REPO
+
+  redeploy:
+    name: Redeploy webhook call
+    runs-on: ubuntu-22.04
+    needs: [docker]
+    steps:
+      - name: Deploy docker container webhook
+        uses: joelwmale/webhook-action@master
+        env:
+          WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL  }}
+          data: '{ "pusher.name": "${{github.event.pusher.name}}"}'

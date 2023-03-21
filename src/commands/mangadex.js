@@ -690,16 +690,16 @@ module.exports = {
         default:
           break;
       }
-    } catch (error) {
+    } catch (err) {
       const hashed_id = id ? id : title_query;
       if (
-        error.response &&
-        (error.response.status >= 400 || error.response.status <= 499)
+        err.response &&
+        (err.response.status >= 400 || err.response.status <= 499)
       ) {
-        ERROR_LOG(error);
-        errorResponse(interaction, hashed_id, error);
+        ERROR_LOG(err);
+        errorResponse(interaction, hashed_id, err);
       } else {
-        ERROR_LOG(error);
+        ERROR_LOG(err);
       }
     }
   },

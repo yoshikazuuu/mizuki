@@ -169,8 +169,9 @@ module.exports = {
         // Post the message in the channel
         await interaction.editReply({ embeds: [embed] });
       }
-    } catch (error) {
-      ERROR_LOG(error);
+    } catch (err) {
+      ERROR_LOG(err);
+      console.error(err);
     }
   },
 };

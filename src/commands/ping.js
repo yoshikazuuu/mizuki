@@ -32,8 +32,9 @@ module.exports = {
             }),
         ],
       });
-    } catch (e) {
-      ERROR_LOG(e);
+    } catch (err) {
+      ERROR_LOG(err);
+      console.error(err);
     }
   },
 };

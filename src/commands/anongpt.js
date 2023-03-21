@@ -125,6 +125,3 @@ module.exports = {
     }
   },
 };
-/*
-How to create a github actions and docker container to deploy a dockerfile for every github push, by trunk based development
-*/
