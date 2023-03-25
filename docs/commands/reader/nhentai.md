@@ -40,10 +40,10 @@ Get a random gallery.
 
 > /nhen random
 
-### Download a Gallery (on-progress)
+### Download a Gallery
 
-~~At this time, we are only available to download a book in .ZIP format. You must provide the gallery ID/code to run this command.~~
+At this time, we are only available to download a book in .ZIP format. You must provide the gallery ID/code to run this command.
 
-> ~~/nhen download \<code>~~
+> /nhen download \<code>
 
-~~Paste/type your gallery ID/code into **\<code>**. For example: `/nhen download code:177013`~~
+Paste/type your gallery ID/code into **\<code>**. For example: `/nhen download code:177013`

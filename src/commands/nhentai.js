@@ -319,6 +319,61 @@ async function nhreader(data, interaction, info) {
   });
 }
 
+async function nhDownloader(interaction, data) {
+  try {
+    // Create an embed to signalling the usert that the chapter is still being downloaded
+    const embed = {
+      color: 16741952,
+      title: data.data.title,
+      thumbnail: {
+        url: data.data.image[0],
+      },
+      author: {
+        name: "nHentai Downloader",
+        icon_url: "attachment://nhentai_icon.jpg",
+      },
+      description: `ID: #${data.data.id}`,
+      fields: [
+        {
+          name: "Download link",
+          value: "Downloading...",
+        },
+      ],
+      timestamp: new Date().toISOString(),
+    };
+
+    await interaction.editReply({ embeds: [embed], files: [ico] });
+
+    // Send POST request to process and zip the chapter
+    const response = await axios.post(
+      `http://yoshi.moe:3069/download/nhen/${data.data.id}`
+    );
+
+    if (response.data.success) {
+      // If zipping is successful, edit the reply with the download link
+      embed.fields[0] = {
+        name: "Download link",
+        value: `[Download the chapter here!](http://yoshi.moe:3069/download/nhen/${data.data.id}.zip)`,
+      };
+
+      await interaction.editReply({ embeds: [embed], files: [ico] });
+    } else {
+      // If zipping failed, edit the reply with an error message
+      embed.fields[0] = {
+        name: "Download link",
+        value: `Error processing the chapter. Please try again later.`,
+      };
+
+      await interaction.editReply({ embeds: [embed], files: [ico] });
+    }
+  } catch (error) {
+    console.error("Error processing the chapter:", error);
+    await interaction.editReply(
+      "Error processing the chapter. Please try again later."
+    );
+  }
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("nhen")
@@ -376,6 +431,7 @@ module.exports = {
           ],
           ephemeral: true,
         });
+        return;
       }
 
       const { id } = interaction.member.user;
@@ -427,7 +483,7 @@ module.exports = {
         case "download":
           COMMAND_LOG(interaction, `/download for ${galleryCode}`);
 
-          nh_download(galleryCode);
+          nhDownloader(interaction, data);
           break;
         default:
           break;
