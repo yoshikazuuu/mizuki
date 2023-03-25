@@ -573,11 +573,12 @@ async function getChapterData(chapterID) {
 
 // Main function to download and zip a chapter
 async function downloadChapter(interaction, chapterID) {
+  let embed;
   try {
     const chapterInfo = await getChapterData(chapterID);
 
     // Create an embed to signalling the usert that the chapter is still being downloaded
-    const embed = {
+    embed = {
       color: 16741952,
       title: chapterInfo.title,
       thumbnail: {
@@ -591,7 +592,7 @@ async function downloadChapter(interaction, chapterID) {
       fields: [
         {
           name: "Download link",
-          value: "Downloading...",
+          value: "⚠️ - Downloading...",
         },
       ],
       timestamp: new Date().toISOString(),
@@ -600,16 +601,17 @@ async function downloadChapter(interaction, chapterID) {
     await interaction.editReply({ embeds: [embed], files: [ico] });
 
     // Send POST request to process and zip the chapter
-    const response = await axios.post(
-      `http://yoshi.moe:3069/download/md/${chapterID}`,
-      { timeout: 1000 * 60 * 14 }
-    );
+    const response = await axios({
+      method: "POST",
+      url: `http://yoshi.moe:3069/download/md/${chapterID}`,
+      timeout: 1000 * 60 * 14,
+    });
 
     if (response.data.success) {
       // If zipping is successful, edit the reply with the download link
       embed.fields[0] = {
         name: "Download link",
-        value: `[Download the chapter here!](http://yoshi.moe:3069/download/md/${chapterID}.zip)`,
+        value: `✅ - [**Download the chapter here!**](http://yoshi.moe:3069/download/md/${chapterID}.zip) \n You have *5 minutes* before the file expired.`,
       };
 
       await interaction.editReply({ embeds: [embed], files: [ico] });
@@ -624,9 +626,12 @@ async function downloadChapter(interaction, chapterID) {
     }
   } catch (error) {
     console.error("Error processing the chapter:", error);
-    await interaction.editReply(
-      "Error processing the chapter. Please try again later."
-    );
+    embed.fields[0] = {
+      name: "Download link",
+      value: `Error processing the chapter. Please try again later.`,
+    };
+
+    await interaction.editReply({ embeds: [embed], files: [ico] });
   }
 }
 

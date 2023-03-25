@@ -320,9 +320,10 @@ async function nhreader(data, interaction, info) {
 }
 
 async function nhDownloader(interaction, data) {
+  let embed;
   try {
     // Create an embed to signalling the usert that the chapter is still being downloaded
-    const embed = {
+    embed = {
       color: 16741952,
       title: data.data.title,
       thumbnail: {
@@ -336,7 +337,7 @@ async function nhDownloader(interaction, data) {
       fields: [
         {
           name: "Download link",
-          value: "Downloading...",
+          value: "⚠️ - Downloading...",
         },
       ],
       timestamp: new Date().toISOString(),
@@ -345,16 +346,17 @@ async function nhDownloader(interaction, data) {
     await interaction.editReply({ embeds: [embed], files: [ico] });
 
     // Send POST request to process and zip the chapter
-    const response = await axios.post(
-      `http://yoshi.moe:3069/download/nhen/${data.data.id}`,
-      { timeout: 1000 * 60 * 14 }
-    );
+    const response = await axios({
+      method: "POST",
+      url: `http://yoshi.moe:3069/download/md/${data.data.id}`,
+      timeout: 1000 * 60 * 14,
+    });
 
     if (response.data.success) {
       // If zipping is successful, edit the reply with the download link
       embed.fields[0] = {
         name: "Download link",
-        value: `[Download the chapter here!](http://yoshi.moe:3069/download/nhen/${data.data.id}.zip)`,
+        value: `✅ - [**Download the chapter here!**](http://yoshi.moe:3069/download/nhen/${data.data.id}.zip) \n You have *5 minutes* before the file expired.`,
       };
 
       await interaction.editReply({ embeds: [embed], files: [ico] });
@@ -369,9 +371,12 @@ async function nhDownloader(interaction, data) {
     }
   } catch (error) {
     console.error("Error processing the chapter:", error);
-    await interaction.editReply(
-      "Error processing the chapter. Please try again later."
-    );
+    embed.fields[0] = {
+      name: "Download link",
+      value: `Error processing the chapter. Please try again later.`,
+    };
+
+    await interaction.editReply({ embeds: [embed], files: [ico] });
   }
 }
 
