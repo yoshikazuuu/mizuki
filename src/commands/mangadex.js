@@ -9,8 +9,6 @@ const {
   Events,
 } = require("discord.js");
 const axios = require("axios");
-const fs = require("fs");
-const archiver = require("archiver");
 const { COMMAND_LOG, ERROR_LOG } = require("../utils/log_template");
 
 const ico = new AttachmentBuilder("assets/mangadex_icon.png");
