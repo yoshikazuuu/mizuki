@@ -601,7 +601,8 @@ async function downloadChapter(interaction, chapterID) {
 
     // Send POST request to process and zip the chapter
     const response = await axios.post(
-      `http://yoshi.moe:3069/download/md/${chapterID}`
+      `http://yoshi.moe:3069/download/md/${chapterID}`,
+      { timeout: 1000 * 60 * 14 }
     );
 
     if (response.data.success) {

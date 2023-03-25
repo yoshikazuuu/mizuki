@@ -346,7 +346,8 @@ async function nhDownloader(interaction, data) {
 
     // Send POST request to process and zip the chapter
     const response = await axios.post(
-      `http://yoshi.moe:3069/download/nhen/${data.data.id}`
+      `http://yoshi.moe:3069/download/nhen/${data.data.id}`,
+      { timeout: 1000 * 60 * 14 }
     );
 
     if (response.data.success) {
