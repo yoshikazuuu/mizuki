@@ -9,6 +9,8 @@ const {
   Events,
 } = require("discord.js");
 const axios = require("axios");
+const fs = require("fs");
+const archiver = require("archiver");
 const { COMMAND_LOG, ERROR_LOG } = require("../utils/log_template");
 
 const ico = new AttachmentBuilder("assets/mangadex_icon.png");
@@ -234,8 +236,14 @@ async function readChapter(
   info_chapters
 ) {
   let page_number = 0;
+  const { data } = await getLinkImage(id);
+
+  const dexData = data.chapter.data.map((img) => {
+    const link = `${data.baseUrl}/data/${data.chapter.hash}/${img}`;
+    return link;
+  });
+
   let index = data_id.findIndex((chapter) => chapter.id === id);
-  const dexData = await getLinkImage(id);
   const selected_chapter = info_chapters[index];
   const dataJSON = {
     id: id,
@@ -322,7 +330,7 @@ async function readChapter(
   });
 }
 
-async function readChapterPrep(interaction, chapter_id) {
+async function readChapterPrep(chapter_id) {
   const manga_id = await getMangaFromChapter(chapter_id);
   const dexTitle = await mangaInfo(manga_id);
   const dexData = await searchChapter(manga_id);
@@ -352,7 +360,13 @@ async function readChapterPrep(interaction, chapter_id) {
       }`
   );
 
-  readChapter(interaction, chapter_id, manga_title, chapters, dexChapters);
+  return {
+    mangaID: manga_id,
+    chapterID: chapter_id,
+    mangaTitle: manga_title,
+    chapters: chapters,
+    dexChapters: dexChapters,
+  };
 }
 
 async function listChapters(interaction, id) {
@@ -532,6 +546,93 @@ async function errorResponse(interaction, id, error) {
   });
 }
 
+// Get chapter data like thumbnail and title
+async function getChapterData(chapterID) {
+  // Fetch the chapter and manga data by chapterID
+  const chapterData = await readChapterPrep(chapterID);
+  const mangaData = await mangaInfo(chapterData.mangaID);
+
+  // Get the thumbnail for the manga
+  const cover_hash = mangaData.data.data.relationships.find(
+    (rel) => rel.type === "cover_art"
+  );
+  const coverData = await getCover(cover_hash.id);
+  const cover_filename = coverData.data.data.attributes.fileName;
+  const thumbnail = `https://uploads.mangadex.org/covers/${chapterData.mangaID}/${cover_filename}.256.jpg`;
+
+  // Find the chapter that being selected
+  let index = chapterData.chapters.findIndex(
+    (chapter) => chapter.id === chapterID
+  );
+  const selectedChapter = chapterData.dexChapters[index];
+
+  return {
+    title: chapterData.mangaTitle,
+    cover: thumbnail,
+    chapter: selectedChapter,
+  };
+}
+
+// Main function to download and zip a chapter
+async function downloadChapter(interaction, chapterID) {
+  try {
+    const chapterInfo = await getChapterData(chapterID);
+
+    // Create an embed to signalling the usert that the chapter is still being downloaded
+    const embed = {
+      color: 16741952,
+      title: chapterInfo.title,
+      thumbnail: {
+        url: chapterInfo.cover,
+      },
+      author: {
+        name: "Mangadex Downloader",
+        icon_url: "attachment://mangadex_icon.png",
+      },
+      description: chapterInfo.chapter,
+      fields: [
+        {
+          name: "Download link",
+          value: "Downloading...",
+        },
+      ],
+      timestamp: new Date().toISOString(),
+    };
+
+    await interaction.editReply({ embeds: [embed], files: [ico] });
+
+    // Send POST request to process and zip the chapter
+    const response = await axios.post(
+      `http://yoshi.moe:3069/download/md/${chapterID}`
+    );
+
+    if (response.data.success) {
+      // If zipping is successful, edit the reply with the download link
+      embed.fields[0] = {
+        name: "Download link",
+        value: `[Download the chapter here!](http://yoshi.moe:3069/download/md/${chapterID}.zip)`,
+      };
+
+      await interaction.editReply({ embeds: [embed], files: [ico] });
+    } else {
+      // If zipping failed, edit the reply with an error message
+      embed.fields[0] = {
+        name: "Download link",
+        value: `Error processing the chapter. Please try again later.`,
+      };
+
+      await interaction.editReply({ embeds: [embed], files: [ico] });
+    }
+  } catch (error) {
+    console.error("Error processing the chapter:", error);
+    await interaction.editReply(
+      "Error processing the chapter. Please try again later."
+    );
+  }
+}
+
+// FETCH FUNCTION
+
 async function getMangaFromChapter(id) {
   const resp = await axios({
     method: "GET",
@@ -565,17 +666,15 @@ async function searchManga(title) {
   return resp;
 }
 
-async function getLinkImage(chapter_id) {
+async function getLinkImage(chapterID) {
+  const baseUrl = "https://api.mangadex.org";
+
   const resp = await axios({
     method: "GET",
-    url: `https://api.mangadex.org/at-home/server/${chapter_id}`,
-  });
-  const mappedLink = resp.data.chapter.data.map((img) => {
-    const link = `${resp.data.baseUrl}/data/${resp.data.chapter.hash}/${img}`;
-    return link;
+    url: `${baseUrl}/at-home/server/${chapterID}`,
   });
 
-  return mappedLink;
+  return resp;
 }
 
 async function searchChapter(title_id) {
@@ -663,7 +762,14 @@ module.exports = {
         case "read": {
           COMMAND_LOG(interaction, `/read`);
 
-          readChapterPrep(interaction, id);
+          const data = await readChapterPrep(id);
+          readChapter(
+            interaction,
+            data.chapterID,
+            data.mangaTitle,
+            data.chapters,
+            data.dexChapters
+          );
           break;
         }
 
@@ -682,10 +788,7 @@ module.exports = {
         case "download":
           COMMAND_LOG(interaction, `/download`);
 
-          await interaction.editReply({
-            contents: `On-progress`,
-            ephemeral: true,
-          });
+          downloadChapter(interaction, id);
           break;
         default:
           break;

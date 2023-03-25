@@ -349,6 +349,17 @@ module.exports = {
             .setDescription("nHentai gallery code.")
             .setRequired(true)
         )
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("download")
+        .setDescription("Download nHentai gallery.")
+        .addStringOption((option) =>
+          option
+            .setName("code")
+            .setDescription("nHentai gallery code.")
+            .setRequired(true)
+        )
     ),
 
   async execute(interaction) {
@@ -412,6 +423,11 @@ module.exports = {
           );
 
           nhinfo(data, interaction);
+          break;
+        case "download":
+          COMMAND_LOG(interaction, `/download for ${galleryCode}`);
+
+          nh_download(galleryCode);
           break;
         default:
           break;
