@@ -348,7 +348,7 @@ async function nhDownloader(interaction, data) {
     // Send POST request to process and zip the chapter
     const response = await axios({
       method: "POST",
-      url: `http://yoshi.moe:3069/download/md/${data.data.id}`,
+      url: `https://yoshi.moe/download/md/${data.data.id}`,
       timeout: 1000 * 60 * 14,
     });
 
@@ -356,7 +356,7 @@ async function nhDownloader(interaction, data) {
       // If zipping is successful, edit the reply with the download link
       embed.fields[0] = {
         name: "Download link",
-        value: `✅ - [**Download the chapter here!**](http://yoshi.moe:3069/download/nhen/${data.data.id}.zip) \n You have *5 minutes* before the file expired.`,
+        value: `✅ - [**Download the chapter here!**](https://yoshi.moe/download/nhen/${data.data.id}.zip) \n You have *5 minutes* before the file expired.`,
       };
 
       await interaction.editReply({ embeds: [embed], files: [ico] });

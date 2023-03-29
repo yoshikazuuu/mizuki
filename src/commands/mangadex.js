@@ -33,7 +33,7 @@ function info_buttons(title_link, source) {
   );
 }
 
-function buttons(page_number, data) {
+function buttons(page_number, length) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("first")
@@ -45,7 +45,7 @@ function buttons(page_number, data) {
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
       .setCustomId("page_number")
-      .setLabel(`${page_number + 1}/${data.image.length}`)
+      .setLabel(`${page_number + 1}/${length}`)
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(true),
     new ButtonBuilder()
@@ -216,7 +216,7 @@ async function titleInfo(interaction, title_id) {
 
   collector.on("end", async () => {
     if (readingStatus) {
-      await listChapters(interaction, title_id);
+      await paginatedChapterSelector(interaction, title_id);
     } else {
       btn.components[0].setDisabled(true);
       await m.edit({
@@ -253,7 +253,7 @@ async function readChapter(
     index,
   };
 
-  let buttons_embed = buttons(page_number, dataJSON);
+  let buttons_embed = buttons(page_number, dataJSON.image.length);
   let m = await interaction.editReply({
     embeds: [embed_reader(interaction, page_number, dataJSON)],
     components: [buttons_embed],
@@ -297,7 +297,7 @@ async function readChapter(
         break;
     }
 
-    buttons_embed = buttons(page_number, dataJSON);
+    buttons_embed = buttons(page_number, dataJSON.image.length);
 
     await i.update({
       embeds: [embed_reader(interaction, page_number, dataJSON)],
@@ -367,26 +367,24 @@ async function readChapterPrep(chapter_id) {
   };
 }
 
-async function listChapters(interaction, id) {
-  const dexTitle = await mangaInfo(id);
+async function listChapters(id) {
+  const pageSize = 10;
+
   const dexData = await searchChapter(id);
-  let chapters, dexChapters, dexChaptersBold, dexChaptersJSON;
+  let chapters,
+    dexChapters,
+    dexChaptersBold,
+    dexChaptersJSON,
+    paginatedDexChaptersJSON,
+    paginatedDexChaptersBold;
 
   if (dexData.data.data.length != 0) {
-    chapters = dexData.data.data
-      .map((manga) => ({
-        id: manga.id,
-        vol: manga.attributes.volume,
-        chapter: manga.attributes.chapter,
-        title: manga.attributes.title,
-      }))
-      .sort((a, b) => {
-        if (a.vol !== b.vol) {
-          return a.vol - b.vol;
-        } else {
-          return a.chapter - b.chapter;
-        }
-      });
+    chapters = dexData.data.data.map((manga) => ({
+      id: manga.id,
+      vol: manga.attributes.volume,
+      chapter: manga.attributes.chapter,
+      title: manga.attributes.title,
+    }));
 
     dexChaptersBold = chapters.map(
       (chapter, index) =>
@@ -418,56 +416,157 @@ async function listChapters(interaction, id) {
         value,
       };
     });
+
+    const paginate = (array, pageSize) => {
+      const paginatedArray = [];
+      for (let i = 0; i < array.length; i += pageSize) {
+        paginatedArray.push(array.slice(i, i + pageSize));
+      }
+      return paginatedArray;
+    };
+
+    paginatedDexChaptersBold = paginate(dexChaptersBold, pageSize);
+    paginatedDexChaptersJSON = paginate(dexChaptersJSON, pageSize);
   } else {
-    dexChaptersBold = "***NO CHAPTER AVAILABLE.***";
-    dexChapters = "NO CHAPTER AVAILABLE";
-    dexChaptersJSON = {
+    paginatedDexChaptersBold = "***NO CHAPTER AVAILABLE.***";
+    paginatedDexChaptersJSON = {
       label: "NO CHAPTER AVAILABLE",
       description: "sadge",
       value: "sadge",
     };
   }
 
-  const cover_hash = dexTitle.data.data.relationships.find(
+  return {
+    paginatedDexChaptersJSON,
+    paginatedDexChaptersBold,
+    dexData,
+    dexChapters,
+    chapters,
+  };
+}
+
+async function paginatedChapterSelector(interaction, id) {
+  const {
+    paginatedDexChaptersJSON: chaptersJSON,
+    paginatedDexChaptersBold: chaptersBold,
+    dexData,
+    dexChapters,
+    chapters,
+  } = await listChapters(id);
+
+  // Get manga title and cover information
+  const dexTitle = await mangaInfo(id);
+  const coverHash = dexTitle.data.data.relationships.find(
     (rel) => rel.type === "cover_art"
   );
-  const coverData = await getCover(cover_hash.id);
-  const cover_filename = coverData.data.data.attributes.fileName;
-  const manga_title = dexTitle.data.data.attributes.title.en;
-  const truncatedChapters = dexChaptersBold.join(`\n`).slice(0, 2000);
+  const coverData = await getCover(coverHash.id);
+  const coverFilename = coverData.data.data.attributes.fileName;
+  const mangaTitle = dexTitle.data.data.attributes.title.en;
 
   let updated = false;
+  let readingStatus = false;
+  let pageNumber = 0;
+
+  let embed = embedContents(
+    interaction,
+    id,
+    mangaTitle,
+    coverFilename,
+    chaptersBold[pageNumber].join("\n"),
+    true
+  );
+
+  let button = buttons(pageNumber, chaptersJSON.length);
+  let selector = menu_builder("Select Chapter", chaptersJSON[pageNumber]);
+
+  await interaction.editReply({
+    embeds: [embed],
+    components: [button, selector],
+    files: [ico],
+  });
+
+  let m = await interaction.editReply({
+    embeds: [embed],
+    components: [button, selector],
+    files: [ico],
+  });
+
+  const filter = (button) => {
+    if (button.user.id !== interaction.member.user.id) {
+      button.reply({ embeds: [wrongUser], ephemeral: true });
+      return false;
+    }
+    return true;
+  };
+
+  const collector = m.createMessageComponentCollector({
+    filter,
+    time: TIMEOUT,
+  });
+
+  collector.on("collect", async (i) => {
+    collector.resetTimer();
+
+    switch (i.customId) {
+      case "next":
+        pageNumber = Math.min(pageNumber + 1, chaptersJSON.length - 1);
+        break;
+      case "prev":
+        pageNumber = Math.max(pageNumber - 1, 0);
+        break;
+      case "first":
+        pageNumber = 0;
+        break;
+      case "last":
+        pageNumber = chaptersJSON.length - 1;
+        break;
+      default:
+        break;
+    }
+
+    button = buttons(pageNumber, chaptersJSON.length);
+    selector = menu_builder("Select Chapter", chaptersJSON[pageNumber]);
+    embed = embedContents(
+      interaction,
+      id,
+      mangaTitle,
+      coverFilename,
+      chaptersBold[pageNumber].join("\n"),
+      true
+    );
+
+    await i.update({
+      embeds: [embed],
+      components: [button, selector],
+      files: [ico],
+    });
+  });
+
+  collector.on("end", async () => {
+    if (readingStatus) {
+      for (let i = 0; i < button.components.length; i++) {
+        const btn = button.components[i];
+        btn.setDisabled(true);
+      }
+      await m.edit({
+        components: [button],
+      });
+    }
+  });
+
   interaction.client.on(Events.InteractionCreate, async (i) => {
     if (!i.isStringSelectMenu()) return;
 
     const selected = i.values[0];
     if (
-      dexData.data.data.find((id) => id.id == selected) != undefined &&
+      dexData.data.data.find((entry) => entry.id === selected) !== undefined &&
       !updated
     ) {
       updated = true;
-
-      await i
-        .deferUpdate()
-        .then(
-          readChapter(interaction, selected, manga_title, chapters, dexChapters)
-        );
+      readingStatus = true;
+      collector.stop();
+      readChapter(interaction, selected, mangaTitle, chapters, dexChapters);
     }
-  });
-
-  await interaction.editReply({
-    embeds: [
-      embedContents(
-        interaction,
-        id,
-        manga_title,
-        cover_filename,
-        truncatedChapters,
-        true
-      ),
-    ],
-    components: [menu_builder("Select Chapter", dexChaptersJSON)],
-    files: [ico],
   });
 }
 
@@ -509,7 +608,9 @@ async function listSearchedTitle(interaction, title) {
     ) {
       updated = true;
 
-      await i.deferUpdate().then(listChapters(interaction, selected));
+      await i
+        .deferUpdate()
+        .then(paginatedChapterSelector(interaction, selected));
     }
   });
 
@@ -603,7 +704,7 @@ async function downloadChapter(interaction, chapterID) {
     // Send POST request to process and zip the chapter
     const response = await axios({
       method: "POST",
-      url: `http://yoshi.moe:3069/download/md/${chapterID}`,
+      url: `https://yoshi.moe/download/md/${chapterID}`,
       timeout: 1000 * 60 * 14,
     });
 
@@ -611,7 +712,7 @@ async function downloadChapter(interaction, chapterID) {
       // If zipping is successful, edit the reply with the download link
       embed.fields[0] = {
         name: "Download link",
-        value: `✅ - [**Download the chapter here!**](http://yoshi.moe:3069/download/md/${chapterID}.zip) \n You have *5 minutes* before the file expired.`,
+        value: `✅ - [**Download the chapter here!**](https://yoshi.moe/download/md/${chapterID}.zip) \n You have *5 minutes* before the file expired.`,
       };
 
       await interaction.editReply({ embeds: [embed], files: [ico] });
@@ -689,6 +790,9 @@ async function searchChapter(title_id) {
     url: `${MANGADEX_ENDPOINT}/manga/${title_id}/feed`,
     params: {
       translatedLanguage: languages,
+      order: {
+        chapter: "asc",
+      },
     },
   });
 
