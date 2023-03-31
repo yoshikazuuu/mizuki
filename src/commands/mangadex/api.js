@@ -7,7 +7,10 @@ async function getMangaFromChapter(id) {
     url: `${MANGADEX_ENDPOINT}/chapter/${id}`,
   });
 
-  return resp.data.data.relationships.find((rel) => rel.type === "manga").id;
+  const mangaID = resp.data.data.relationships.find(
+    (rel) => rel.type === "manga"
+  ).id;
+  return { mangaID };
 }
 
 async function searchManga(title) {
@@ -81,9 +84,9 @@ async function getCover(title_id) {
 }
 
 async function getDataFromChapter(chapter_id) {
-  const manga_id = await getMangaFromChapter(chapter_id);
-  const dexTitle = await getMangaInfo(manga_id);
-  const dexData = await searchChapter(manga_id);
+  const { mangaID } = await getMangaFromChapter(chapter_id);
+  const dexTitle = await getMangaInfo(mangaID);
+  const dexData = await searchChapter(mangaID);
 
   const manga_title = dexTitle.data.data.attributes.title.en;
   const chapters = dexData.data.data.map((manga) => ({
@@ -103,7 +106,7 @@ async function getDataFromChapter(chapter_id) {
   );
 
   return {
-    mangaID: manga_id,
+    mangaID: mangaID,
     chapterID: chapter_id,
     mangaTitle: manga_title,
     chapters: chapters,

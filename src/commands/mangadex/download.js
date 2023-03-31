@@ -1,12 +1,12 @@
 const axios = require("axios");
 const { ICO } = require("./constants");
-const { getCover, mangaInfo, getMangaFromChapter } = require("./api");
+const { getCover, getMangaInfo, getDataFromChapter } = require("./api");
 
 // Get chapter data like thumbnail and title
 async function getChapterData(chapterID) {
   // Fetch the chapter and manga data by chapterID
-  const chapterData = await getMangaFromChapter(chapterID);
-  const mangaData = await mangaInfo(chapterData.mangaID);
+  const chapterData = await getDataFromChapter(chapterID);
+  const mangaData = await getMangaInfo(chapterData.mangaID);
 
   // Get the thumbnail for the manga
   const cover_hash = mangaData.data.data.relationships.find(
@@ -85,9 +85,19 @@ async function downloadChapter(interaction, chapterID) {
     }
   } catch (error) {
     console.error("Error processing the chapter:", error);
-    embed.fields[0] = {
-      name: "Download link",
-      value: `Error processing the chapter. Please try again later.`,
+    embed = {
+      color: 16741952,
+      author: {
+        name: "Mangadex Downloader",
+        icon_url: "attachment://mangadex_icon.png",
+      },
+      fields: [
+        {
+          name: "Download link",
+          value: `Error processing the chapter. Please try again later.`,
+        },
+      ],
+      timestamp: new Date().toISOString(),
     };
 
     await interaction.editReply({ embeds: [embed], files: [ICO] });
