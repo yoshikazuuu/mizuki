@@ -2,85 +2,115 @@ const axios = require("axios");
 const { MANGADEX_ENDPOINT } = require("./constants");
 
 async function getMangaFromChapter(id) {
-  const resp = await axios({
-    method: "GET",
-    url: `${MANGADEX_ENDPOINT}/chapter/${id}`,
-  });
+  try {
+    const resp = await axios({
+      method: "GET",
+      url: `${MANGADEX_ENDPOINT}/chapter/${id}`,
+    });
 
-  const mangaID = resp.data.data.relationships.find(
-    (rel) => rel.type === "manga"
-  ).id;
-  return { mangaID };
+    const mangaID = resp.data.data.relationships.find(
+      (rel) => rel.type === "manga"
+    ).id;
+    return { mangaID };
+  } catch (error) {
+    console.error(`Error in getMangaFromChapter: ${error}`);
+    throw new Error(`Failed to get manga from chapter ID ${id}`);
+  }
 }
 
 async function searchManga(title) {
-  const order = {
-    rating: "desc",
-    followedCount: "desc",
-  };
+  try {
+    const order = {
+      rating: "desc",
+      followedCount: "desc",
+    };
 
-  const finalOrderQuery = {};
+    const finalOrderQuery = {};
 
-  for (const [key, value] of Object.entries(order)) {
-    finalOrderQuery[`order[${key}]`] = value;
+    for (const [key, value] of Object.entries(order)) {
+      finalOrderQuery[`order[${key}]`] = value;
+    }
+
+    const resp = await axios({
+      method: "GET",
+      url: `${MANGADEX_ENDPOINT}/manga`,
+      params: {
+        title: title,
+        ...finalOrderQuery,
+      },
+    });
+
+    return resp;
+  } catch (error) {
+    console.error(`Error in searchManga: ${error}`);
+    throw new Error(`Failed to search manga with title ${title}`);
   }
-
-  const resp = await axios({
-    method: "GET",
-    url: `${MANGADEX_ENDPOINT}/manga`,
-    params: {
-      title: title,
-      ...finalOrderQuery,
-    },
-  });
-
-  return resp;
 }
 
 async function getLinkImage(chapterID) {
-  const baseUrl = "https://api.mangadex.org";
+  try {
+    const baseUrl = "https://api.mangadex.org";
 
-  const resp = await axios({
-    method: "GET",
-    url: `${baseUrl}/at-home/server/${chapterID}`,
-  });
+    const resp = await axios({
+      method: "GET",
+      url: `${baseUrl}/at-home/server/${chapterID}`,
+    });
 
-  return resp;
+    return resp;
+  } catch (error) {
+    console.error(`Error in getLinkImage: ${error}`);
+    throw new Error(`Failed to get link image for chapter ID ${chapterID}`);
+  }
 }
 
 async function searchChapter(title_id) {
-  const languages = ["en"];
+  try {
+    const languages = ["en"];
 
-  const resp = await axios({
-    method: "GET",
-    url: `${MANGADEX_ENDPOINT}/manga/${title_id}/feed`,
-    params: {
-      translatedLanguage: languages,
-      order: {
-        chapter: "asc",
+    const resp = await axios({
+      method: "GET",
+      url: `${MANGADEX_ENDPOINT}/manga/${title_id}/feed`,
+      params: {
+        translatedLanguage: languages,
+        order: {
+          chapter: "asc",
+        },
       },
-    },
-  });
+    });
 
-  return resp;
+    return resp;
+  } catch (error) {
+    console.error(`Error in searchChapter: ${error}`);
+    throw new Error(`Failed to search chapter for manga with ID ${title_id}`);
+  }
 }
 
 async function getMangaInfo(title_id) {
-  const resp = await axios({
-    method: "GET",
-    url: `${MANGADEX_ENDPOINT}/manga/${title_id}`,
-  });
+  try {
+    const resp = await axios({
+      method: "GET",
+      url: `${MANGADEX_ENDPOINT}/manga/${title_id}`,
+    });
 
-  return resp;
+    return resp;
+  } catch (error) {
+    console.error(`Error in getMangaInfo: ${error}`);
+    throw error;
+  }
 }
 
 async function getCover(title_id) {
-  const resp = await axios({
-    method: "GET",
-    url: `${MANGADEX_ENDPOINT}/cover/${title_id}`,
-  });
+  try {
+    const resp = await axios({
+      method: "GET",
+      url: `${MANGADEX_ENDPOINT}/cover/${title_id}`,
+    });
 
-  return resp;
+    return resp;
+  } catch (error) {
+    console.error(`Error in getCover: ${error}`);
+    throw new Error(`Failed to get cover image for manga with ID ${title_id}`);
+  }
 }
 
 async function getDataFromChapter(chapter_id) {
@@ -152,7 +182,7 @@ async function getListChapters(id) {
         }`
     );
 
-    dexChaptersJSON = dexChapters.slice(0, 25).map((chapter, index) => {
+    dexChaptersJSON = dexChapters.map((chapter, index) => {
       const id = dexData.data.data[index].id;
       const label =
         (dexChapters[index] && dexChapters[index].slice(0, 100)) || "N/A";
@@ -195,7 +225,20 @@ async function getListChapters(id) {
 
 function mapDexDataToJSON(dexData) {
   const dexTitlesJSON = dexData.data.data.map((manga, index) => {
-    const title = manga.attributes.title.en;
+    // Add or remove title keys as needed
+    const possibleTitleKeys = ["en", "ja", "ja-ro"];
+    const getTitle = (titles) => {
+      return possibleTitleKeys.reduce((foundTitle, key) => {
+        return foundTitle || titles[key];
+      }, null);
+    };
+    let title = getTitle(manga.attributes.title);
+
+    // Check if title empty or undefined
+    if (!title && manga.attributes.altTitles) {
+      title = getTitle(manga.attributes.altTitles);
+    }
+
     const id = dexData.data.data[index].id;
     const label = (title && title.slice(0, 100)) || "N/A";
     const description = (id && `ID: ${id}`.slice(0, 100)) || "N/A";
@@ -224,7 +267,26 @@ async function getMangaTitleAndCover(id) {
   );
   const coverData = await getCover(coverHash.id);
   const coverFilename = coverData.data.data.attributes.fileName;
-  const mangaTitle = dexTitle.data.data.attributes.title.en;
+
+  // Checking if title is empty or undefined
+  const mangaData = dexTitle.data.data.attributes;
+  const getTitle = (titles) => {
+    const possibleTitleKeys = ["en", "ja", "ja-ro"];
+
+    if (Array.isArray(titles)) {
+      return titles.reduce(
+        (foundTitle, titleObj) => getTitle(titleObj) || foundTitle,
+        null
+      );
+    } else {
+      return possibleTitleKeys.reduce(
+        (foundTitle, key) => titles[key] || foundTitle,
+        null
+      );
+    }
+  };
+  const title = getTitle(mangaData.title) || getTitle(mangaData.altTitles);
+  const mangaTitle = title || "Untitled";
 
   return { mangaTitle, coverFilename };
 }

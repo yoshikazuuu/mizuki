@@ -20,6 +20,15 @@ function info_buttons(title_link, source) {
   );
 }
 
+function downloadButton() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("download")
+      .setLabel("Download Chapter")
+      .setStyle(ButtonStyle.Success)
+  );
+}
+
 function buttons(page_number, length) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -123,6 +132,25 @@ function buildEmbed(dexData, coverData, interaction, title_id) {
   const cover_filename = coverData.data.data.attributes.fileName;
   const format = extractTags(md, "format");
   const genres = extractTags(md, "genre");
+  const mangaData = md.attributes;
+  const getTitle = (titles) => {
+    const possibleTitleKeys = ["en", "ja", "ja-ro"];
+
+    if (Array.isArray(titles)) {
+      return titles.reduce(
+        (foundTitle, titleObj) => getTitle(titleObj) || foundTitle,
+        null
+      );
+    } else {
+      return possibleTitleKeys.reduce(
+        (foundTitle, key) => titles[key] || foundTitle,
+        null
+      );
+    }
+  };
+
+  const title = getTitle(mangaData.title) || getTitle(mangaData.altTitles);
+  const mangaTitle = title || "Untitled";
 
   return new EmbedBuilder()
     .setColor(0xff6740)
@@ -161,21 +189,56 @@ function buildEmbed(dexData, coverData, interaction, title_id) {
     .setFooter({
       text: `ID: ${title_id}\nRequested by ${interaction.user.username}#${interaction.user.discriminator}`,
     })
-    .setTitle(md.attributes.title.en);
+    .setTitle(mangaTitle);
 }
 
 function buildSearchEmbed(interaction, title, embed_title, dexTitlesJSON) {
-  const dexTitles = dexTitlesJSON
-    .map(
-      (entry, index) =>
-        `**${index + 1}. ${entry.label}**\n*ID: ${entry.value}*\n`
-    )
-    .join("\n");
+  let dexTitles;
+
+  if (dexTitlesJSON.length > 0) {
+    dexTitles = dexTitlesJSON
+      .map(
+        (entry, index) =>
+          `**${index + 1}. ${entry.label}**\n*ID: ${entry.value}*\n`
+      )
+      .join("\n");
+  } else {
+    dexTitles =
+      "**No results found.**\nTry better query like, `I Sold My Life`";
+  }
 
   return embedContents(interaction, title, embed_title, null, dexTitles, false);
 }
 
+function embedDownloader(chapterInfo) {
+  let embed = {
+    color: 16741952,
+    author: {
+      name: "Mangadex Downloader",
+      icon_url: "attachment://mangadex_icon.png",
+    },
+    fields: [
+      {
+        name: "Download link",
+        value: `Error processing the chapter. Please try again later.`,
+      },
+    ],
+    timestamp: new Date().toISOString(),
+  };
+
+  if (chapterInfo) {
+    embed.title = chapterInfo.title;
+    embed.thumbnail = { url: chapterInfo.cover };
+    embed.description = chapterInfo.chapter;
+    embed.fields[0].value = "⚠️ - **Downloading...**";
+  }
+
+  return { embed };
+}
+
 module.exports = {
+  embedDownloader,
+  downloadButton,
   buildSearchEmbed,
   info_buttons,
   buttons,

@@ -1,5 +1,5 @@
 const { Events, ActivityType } = require("discord.js");
-const { READY_LOG } = require("../utils/log_template");
+const { READY_LOG } = require("../utils/logger");
 
 module.exports = {
   name: Events.ClientReady,

@@ -1,5 +1,5 @@
 const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
-const { ERROR_LOG } = require("../utils/log_template");
+const { ERROR_LOG } = require("../utils/logger");
 const axios = require("axios");
 
 // Load the env variables
@@ -30,7 +30,6 @@ module.exports = {
 
       // Handle the invalid attachment
       if (!attach.contentType.startsWith("image")) {
-        console.log(attach.contentType);
         await interaction.editReply({
           embeds: [
             {

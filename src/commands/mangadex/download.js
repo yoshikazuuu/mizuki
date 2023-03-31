@@ -1,6 +1,7 @@
 const axios = require("axios");
-const { ICO } = require("./constants");
-const { getCover, getMangaInfo, getDataFromChapter } = require("./api");
+const { ICO } = require("./utils/constants");
+const { getCover, getMangaInfo, getDataFromChapter } = require("./utils/api");
+const { embedDownloader } = require("./utils/ui");
 
 // Get chapter data like thumbnail and title
 async function getChapterData(chapterID) {
@@ -30,35 +31,8 @@ async function getChapterData(chapterID) {
 }
 
 // Main function to download and zip a chapter
-async function downloadChapter(interaction, chapterID) {
-  let embed;
+async function subCommandChapterDownload(interaction, chapterID) {
   try {
-    // Fetch the data of the chapter
-    const chapterInfo = await getChapterData(chapterID);
-
-    // Create an embed to signalling the usert that the chapter is still being downloaded
-    embed = {
-      color: 16741952,
-      title: chapterInfo.title,
-      thumbnail: {
-        url: chapterInfo.cover,
-      },
-      author: {
-        name: "Mangadex Downloader",
-        icon_url: "attachment://mangadex_icon.png",
-      },
-      description: chapterInfo.chapter,
-      fields: [
-        {
-          name: "Download link",
-          value: "⚠️ - Downloading...",
-        },
-      ],
-      timestamp: new Date().toISOString(),
-    };
-
-    await interaction.editReply({ embeds: [embed], files: [ICO] });
-
     // Send POST request to process and zip the chapter
     const response = await axios({
       method: "POST",
@@ -66,42 +40,58 @@ async function downloadChapter(interaction, chapterID) {
       timeout: 1000 * 60 * 14,
     });
 
-    if (response.data.success) {
-      // If zipping is successful, edit the reply with the download link
-      embed.fields[0] = {
-        name: "Download link",
-        value: `✅ - [**Download the chapter here!**](https://yoshi.moe/download/md/${chapterID}.zip) \n You have *5 minutes* before the file expired.`,
-      };
+    // Fetch the data of the chapter
+    const chapterInfo = await getChapterData(chapterID);
+    let downloaderProps = embedDownloader(chapterInfo);
 
-      await interaction.editReply({ embeds: [embed], files: [ICO] });
-    } else {
-      // If zipping failed, edit the reply with an error message
-      embed.fields[0] = {
-        name: "Download link",
-        value: `Error processing the chapter. Please try again later.`,
-      };
+    // Create an embed to signalling the usert that the chapter is still being downloaded
+    let embed = downloaderProps.embed;
 
-      await interaction.editReply({ embeds: [embed], files: [ICO] });
-    }
+    await interaction
+      .followUp({
+        embeds: [embed],
+        components: [],
+        files: [ICO],
+      })
+      .then((msg) => {
+        if (response.data.success) {
+          // If zipping is successful, edit the reply with the download link
+          embed.fields[0] = {
+            name: "Download link",
+            value: `✅ - [**Download the chapter here!**](https://yoshi.moe/download/md/${chapterID}.zip) \n You have *5 minutes* before the file expired.`,
+          };
+
+          msg.edit({
+            embeds: [embed],
+            files: [ICO],
+          });
+
+          // Delete the reply after 5 minutes
+          setTimeout(() => {
+            msg.delete();
+          }, 5 * 60 * 1000);
+        } else {
+          // If zipping failed, edit the reply with an error message
+          embed.fields[0] = {
+            name: "Download link",
+            value: `Error processing the chapter. Please try again later.`,
+          };
+
+          msg.edit({
+            embeds: [embed],
+            files: [ICO],
+          });
+        }
+      });
   } catch (error) {
     console.error("Error processing the chapter:", error);
-    embed = {
-      color: 16741952,
-      author: {
-        name: "Mangadex Downloader",
-        icon_url: "attachment://mangadex_icon.png",
-      },
-      fields: [
-        {
-          name: "Download link",
-          value: `Error processing the chapter. Please try again later.`,
-        },
-      ],
-      timestamp: new Date().toISOString(),
-    };
+    const downloaderProps = embedDownloader(null);
 
-    await interaction.editReply({ embeds: [embed], files: [ICO] });
+    await interaction.followUp({
+      embeds: [downloaderProps.embed],
+      files: [ICO],
+    });
   }
 }
 
-module.exports = downloadChapter;
+module.exports = { subCommandChapterDownload };

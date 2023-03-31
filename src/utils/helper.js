@@ -1,30 +1,32 @@
-const {
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} = require("discord.js");
+const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
+const ICO = new AttachmentBuilder("assets/mizuki_sorry.png");
 
-async function errorResponse(interaction, id, error) {
+async function errorResponse(interaction) {
   await interaction.editReply({
     embeds: [
       new EmbedBuilder()
         .setColor("#F6C1CC")
-        .setTitle(`(Status ${error.response.status})`)
+        .setImage("attachment://mizuki_sorry.png")
+        .setTitle(`Sorry. I can't do that, ${interaction.user.username}-san!`)
         .addFields({
-          name: `Something's wrong with the API`,
-          value: `Try to open it manually using this link!`,
-        }),
+          name: `Something's wrong *nii-sama!*`,
+          value: `Put proper ID or check the ID again.`,
+        })
+        .setTimestamp(),
     ],
-    components: [
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setLabel("Mangadex")
-          .setStyle(ButtonStyle.Link)
-          .setURL(`https://mangadex.org/title/${id}`)
-      ),
+    files: [ICO],
+  });
+}
+
+async function errorInteraction(interaction) {
+  await interaction.editReply({
+    emebeds: [
+      new EmbedBuilder().setColor("#F6C1CC").setTitle(`Error`).addFields({
+        name: "Something's wrong *nii-sama!*",
+        value: "Error executing the command.",
+      }),
     ],
   });
 }
 
-module.exports = errorResponse;
+module.exports = { errorResponse, errorInteraction };

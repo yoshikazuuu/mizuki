@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require("discord.js");
-const { ERROR_LOG } = require("../utils/log_template");
+const { ERROR_LOG } = require("../utils/logger");
 const { EmbedBuilder } = require("discord.js");
 // const fs = require("fs");
 

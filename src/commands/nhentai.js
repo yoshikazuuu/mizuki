@@ -7,7 +7,7 @@ const {
   AttachmentBuilder,
 } = require("discord.js");
 const axios = require("axios");
-const { COMMAND_LOG, ERROR_LOG } = require("../utils/log_template");
+const { COMMAND_LOG, ERROR_LOG } = require("../utils/logger");
 
 const TIMEOUT = 60 * 1000;
 const COOLDOWNS = 10 * 1000;

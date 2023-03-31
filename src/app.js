@@ -15,7 +15,7 @@ dotenv.config();
 const discord_clientId = process.env.DISCORD_CLIENTID;
 const discord_token = process.env.DISCORD_TOKEN;
 
-const { WARNING_LOG, PREP_LOG } = require("./utils/log_template");
+const { WARNING_LOG, PREP_LOG } = require("./utils/logger");
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });

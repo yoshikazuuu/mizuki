@@ -16,7 +16,7 @@ const discord_clientId_dev = process.env.DISCORD_CLIENTID_DEV;
 const discord_guildId_dev = process.env.DISCORD_GUILDID_DEV;
 const discord_token_dev = process.env.DISCORD_TOKEN_DEV;
 
-const { WARNING_LOG, PREP_LOG } = require("./utils/log_template");
+const { WARNING_LOG, PREP_LOG } = require("./utils/logger");
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });

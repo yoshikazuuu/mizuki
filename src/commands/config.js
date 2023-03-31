@@ -1,5 +1,5 @@
 // const { SlashCommandBuilder, PermissionsBitField } = require("discord.js");
-// const { ERROR_LOG } = require("../utils/log_template");
+// const { ERROR_LOG } = require("../utils/logger");
 // const fs = require("fs");
 
 // async function confessConfig(interaction, method, channel) {

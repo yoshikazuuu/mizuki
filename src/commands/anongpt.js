@@ -4,7 +4,7 @@ const {
   AttachmentBuilder,
 } = require("discord.js");
 const { Configuration, OpenAIApi } = require("openai");
-const { ERROR_LOG } = require("../utils/log_template");
+const { ERROR_LOG } = require("../utils/logger");
 
 // Load the env variables
 const dotenv = require("dotenv");

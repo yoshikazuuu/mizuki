@@ -1,4 +1,4 @@
-const { WRONGUSER, TIMEOUT } = require("../commands/mangadex/constants");
+const { WRONGUSER, TIMEOUT } = require("../commands/mangadex/utils/constants");
 
 function createCollector(m, interaction) {
   const filter = (button) => {
