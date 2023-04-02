@@ -1,6 +1,6 @@
 const { Events } = require("discord.js");
 const { searchManga, mapDexDataToJSON } = require("./utils/api");
-const { ICO } = require("./utils/constants");
+const { ICO_MD } = require("../../utils/constants");
 const { buildSearchEmbed, menu_builder } = require("./utils/ui");
 const { subCommandTitleInfo } = require("./info");
 
@@ -42,7 +42,7 @@ async function subCommandTitleSearch(interaction, title) {
 
     await interaction.editReply({
       embeds: [searchEmbed],
-      files: [ICO],
+      files: [ICO_MD],
       components: menu ? [menu] : [],
     });
   } catch (error) {

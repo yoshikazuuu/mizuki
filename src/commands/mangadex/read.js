@@ -1,6 +1,6 @@
 const { createCollector } = require("../../utils/collector");
 const { getLinkImage, getDataFromChapter } = require("./utils/api");
-const { ICO } = require("./utils/constants");
+const { ICO_MD } = require("../../utils/constants");
 const { subCommandChapterDownload } = require("./download");
 const { buttons, downloadButton, embed_reader } = require("./utils/ui");
 
@@ -39,7 +39,7 @@ async function readChapter(
   let m = await interaction.editReply({
     embeds: [embed],
     components: [buttonsEmbed, downloadBtn],
-    files: [ICO],
+    files: [ICO_MD],
   });
 
   const collector = createCollector(m, interaction);
@@ -81,7 +81,7 @@ async function readChapter(
     await i.update({
       embeds: [embed],
       components: [buttonsEmbed, downloadBtn],
-      files: [ICO],
+      files: [ICO_MD],
     });
   });
 

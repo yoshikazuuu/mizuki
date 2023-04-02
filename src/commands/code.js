@@ -1,30 +1,34 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { ERROR_LOG } = require("../utils/logger");
-const axios = require("axios");
+const { OpenAIApi, Configuration } = require("openai");
+const { errorResponse } = require("../utils/helper");
+const { LLM_MODEL } = require("../utils/constants");
+const dotenv = require("dotenv");
 
 // Load the env variables
-const dotenv = require("dotenv");
 dotenv.config();
 const openai_token = process.env.OPENAI_TOKEN;
 
+const configuration = new Configuration({
+  apiKey: openai_token,
+});
+const openai = new OpenAIApi(configuration);
+
 async function getAnswer(language, prompt) {
-  const resp = await axios({
-    method: "post",
-    url: "https://api.openai.com/v1/chat/completions",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${openai_token}`,
-    },
-    data: {
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "user",
-          content: `code this in ${language} with the following requirements ${prompt} and don't forget to format it using \`\`\``,
-        },
-      ],
-      temperature: 0,
-    },
+  const resp = await openai.createChatCompletion({
+    model: LLM_MODEL,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are a professional coder that always code with proper format it using ``` and language that specified",
+      },
+      {
+        role: "user",
+        content: `code this in ${language} with the following requirements ${prompt}`,
+      },
+    ],
+    top_p: 0.1,
   });
 
   return resp;
@@ -145,6 +149,7 @@ module.exports = {
       }
     } catch (err) {
       ERROR_LOG(err);
+      errorResponse(interaction, err);
       console.error(err);
     }
   },

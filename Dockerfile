@@ -11,4 +11,4 @@ COPY . /mizuki
 RUN pnpm i
 
 # Start the bot!
-CMD ["npm", "run", "deploy"]
+CMD ["pnpm", "run", "deploy"]

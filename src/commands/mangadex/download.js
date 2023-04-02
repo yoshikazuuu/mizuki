@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { ICO } = require("./utils/constants");
+const { ICO_MD } = require("../../utils/constants");
 const { getCover, getMangaInfo, getDataFromChapter } = require("./utils/api");
 const { embedDownloader } = require("./utils/ui");
 
@@ -51,7 +51,7 @@ async function subCommandChapterDownload(interaction, chapterID) {
       .followUp({
         embeds: [embed],
         components: [],
-        files: [ICO],
+        files: [ICO_MD],
       })
       .then((msg) => {
         if (response.data.success) {
@@ -63,7 +63,7 @@ async function subCommandChapterDownload(interaction, chapterID) {
 
           msg.edit({
             embeds: [embed],
-            files: [ICO],
+            files: [ICO_MD],
           });
 
           // Delete the reply after 5 minutes
@@ -79,7 +79,7 @@ async function subCommandChapterDownload(interaction, chapterID) {
 
           msg.edit({
             embeds: [embed],
-            files: [ICO],
+            files: [ICO_MD],
           });
         }
       });
@@ -89,7 +89,7 @@ async function subCommandChapterDownload(interaction, chapterID) {
 
     await interaction.followUp({
       embeds: [downloaderProps.embed],
-      files: [ICO],
+      files: [ICO_MD],
     });
   }
 }

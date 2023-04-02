@@ -1,7 +1,7 @@
 const { createCollector } = require("../../utils/collector");
 const { getMangaInfo, fetchCoverData } = require("./utils/api");
 const { paginatedChapterSelector } = require("./utils/common");
-const { ICO } = require("./utils/constants");
+const { ICO_MD } = require("../../utils/constants");
 const { buildEmbed, info_buttons } = require("./utils/ui");
 
 async function subCommandTitleInfo(interaction, title_id) {
@@ -17,7 +17,7 @@ async function subCommandTitleInfo(interaction, title_id) {
   let m = await interaction.editReply({
     embeds: [embed],
     components: [btn],
-    files: [ICO],
+    files: [ICO_MD],
   });
 
   const collector = createCollector(m, interaction);

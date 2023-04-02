@@ -4,59 +4,27 @@ const {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
-  AttachmentBuilder,
 } = require("discord.js");
 const axios = require("axios");
 const { COMMAND_LOG, ERROR_LOG } = require("../utils/logger");
+const { errorResponse } = require("../utils/helper");
 
-const TIMEOUT = 60 * 1000;
-const COOLDOWNS = 10 * 1000;
-
-// Main
-// const NHENTAI_CUSTOM_ENDPOINT = "https://janda.mod.land/nhentai/get?book=";
-// const NHENTAI_RANDOM_ENDPOINT = "https://janda.mod.land/nhentai/random";
-
-// Alternative
-const NHENTAI_CUSTOM_ENDPOINT = "https://janda.sinkaroid.org/nhentai/get?book=";
-const NHENTAI_RANDOM_ENDPOINT = "https://janda.sinkaroid.org/nhentai/random";
+// Require constants
+const {
+  ICO_NH,
+  WRONGUSER,
+  TIMEOUT,
+  COOLDOWNS,
+  NHENTAI_CUSTOM_ENDPOINT,
+  NHENTAI_RANDOM_ENDPOINT,
+} = require("../utils/constants");
 
 const cooldowns = new Map();
-const ico = new AttachmentBuilder("assets/nhentai_icon.jpg");
-const wrongUser = new EmbedBuilder().setColor("#F6C1CC").addFields({
-  name: "You Really Thought Huh?",
-  value: `Only the one who activated this command can click a button`,
-});
 
 function cooldownEmbed(remainingTime) {
   return new EmbedBuilder().setColor("#F6C1CC").addFields({
     name: "Take it slow *nii-sama!*",
     value: `:exclamation: You can use it again in **${remainingTime / 1000}s**`,
-  });
-}
-
-async function errorResponse(interaction, galleryCode, error) {
-  await interaction.editReply({
-    embeds: [
-      new EmbedBuilder()
-        .setColor("#F6C1CC")
-        .setTitle(`(Status ${error.response.status})`)
-        .addFields({
-          name: `Something's wrong with the API`,
-          value: `Try again or open it manually using this link.`,
-        }),
-    ],
-    components: [
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setLabel("nHentai")
-          .setStyle(ButtonStyle.Link)
-          .setURL(
-            galleryCode
-              ? `https://nhentai.net/g/${galleryCode}`
-              : `https://nhentai.net/random`
-          )
-      ),
-    ],
   });
 }
 
@@ -206,12 +174,12 @@ async function nhinfo(data, interaction) {
   let m = await interaction.followUp({
     embeds: [embed_info(interaction, data)],
     components: [buttons],
-    files: [ico],
+    files: [ICO_NH],
   });
 
   const filter = (button) => {
     if (button.user.id !== interaction.member.user.id) {
-      button.reply({ embeds: [wrongUser], ephemeral: true });
+      button.reply({ embeds: [WRONGUSER], ephemeral: true });
       return false;
     }
     return true;
@@ -228,7 +196,7 @@ async function nhinfo(data, interaction) {
       await i.update({
         embeds: [embed_info(interaction, data)],
         components: [buttons],
-        files: [ico],
+        files: [ICO_NH],
       });
       collector.stop();
       return;
@@ -256,19 +224,19 @@ async function nhreader(data, interaction, info) {
     m = await interaction.editReply({
       embeds: [embed_reader(interaction, page_number, data)],
       components: [buttons_embed],
-      files: [ico],
+      files: [ICO_NH],
     });
   } else {
     m = await interaction.followUp({
       embeds: [embed_reader(interaction, page_number, data)],
       components: [buttons_embed],
-      files: [ico],
+      files: [ICO_NH],
     });
   }
 
   const filter = (button) => {
     if (button.user.id !== interaction.member.user.id) {
-      button.reply({ embeds: [wrongUser], ephemeral: true });
+      button.reply({ embeds: [WRONGUSER], ephemeral: true });
       return false;
     }
     return true;
@@ -304,7 +272,7 @@ async function nhreader(data, interaction, info) {
     await i.update({
       embeds: [embed_reader(interaction, page_number, data)],
       components: [buttons_embed],
-      files: [ico],
+      files: [ICO_NH],
     });
   });
 
@@ -343,7 +311,7 @@ async function nhDownloader(interaction, data) {
       timestamp: new Date().toISOString(),
     };
 
-    await interaction.editReply({ embeds: [embed], files: [ico] });
+    await interaction.editReply({ embeds: [embed], files: [ICO_NH] });
 
     // Send POST request to process and zip the chapter
     const response = await axios({
@@ -359,7 +327,7 @@ async function nhDownloader(interaction, data) {
         value: `✅ - [**Download the chapter here!**](https://yoshi.moe/download/nhen/${data.data.id}.zip) \n You have *5 minutes* before the file expired.`,
       };
 
-      await interaction.editReply({ embeds: [embed], files: [ico] });
+      await interaction.editReply({ embeds: [embed], files: [ICO_NH] });
     } else {
       // If zipping failed, edit the reply with an error message
       embed.fields[0] = {
@@ -367,7 +335,7 @@ async function nhDownloader(interaction, data) {
         value: `Error processing the chapter. Please try again later.`,
       };
 
-      await interaction.editReply({ embeds: [embed], files: [ico] });
+      await interaction.editReply({ embeds: [embed], files: [ICO_NH] });
     }
   } catch (error) {
     console.error("Error processing the chapter:", error);
@@ -376,7 +344,7 @@ async function nhDownloader(interaction, data) {
       value: `Error processing the chapter. Please try again later.`,
     };
 
-    await interaction.editReply({ embeds: [embed], files: [ico] });
+    await interaction.editReply({ embeds: [embed], files: [ICO_NH] });
   }
 }
 
@@ -497,16 +465,9 @@ module.exports = {
 
       setTimeout(() => cooldowns.delete(id), COOLDOWNS);
     } catch (err) {
-      if (
-        err.response &&
-        (err.response.status >= 400 || err.response.status <= 499)
-      ) {
-        ERROR_LOG(err);
-        errorResponse(interaction, galleryCode, err);
-      } else {
-        ERROR_LOG(err);
-        console.error(err);
-      }
+      ERROR_LOG(err);
+      errorResponse(interaction, err);
+      console.error(err);
     }
   },
 };

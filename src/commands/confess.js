@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { ERROR_LOG } = require("../utils/logger");
 const { EmbedBuilder } = require("discord.js");
-// const fs = require("fs");
+const { getRandomPastelColor } = require("../utils/color");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -69,7 +69,7 @@ module.exports = {
 
       // Create the embed for the confession
       const embed = new EmbedBuilder()
-        .setColor("#" + Math.floor(Math.random() * 16777215).toString(16))
+        .setColor(getRandomPastelColor())
         .setTitle(`Anonymous Confession`)
         .setDescription(`"${msg}"`)
         .setTimestamp();

@@ -5,29 +5,31 @@ const {
 } = require("discord.js");
 const { Configuration, OpenAIApi } = require("openai");
 const { ERROR_LOG } = require("../utils/logger");
+const { LLM_MODEL } = require("../utils/constants");
+const { errorResponse } = require("../utils/helper");
 
 // Load the env variables
 const dotenv = require("dotenv");
+const { getRandomPastelColor } = require("../utils/color");
 dotenv.config();
 const openai_token = process.env.OPENAI_TOKEN;
-const anongpt_payload = process.env.ANONGPT_PAYLOAD;
 
 const configuration = new Configuration({
   apiKey: openai_token,
 });
 const openai = new OpenAIApi(configuration);
 const ico = new AttachmentBuilder("assets/chatgpt_icon.png");
-const LLM_MODEL = "text-davinci-003";
 
 async function getAnswer(prompt) {
-  const resp = await openai.createCompletion({
+  const resp = await openai.createChatCompletion({
     model: LLM_MODEL,
-    prompt: `${anongpt_payload}${prompt}`,
-    temperature: 0,
-    max_tokens: 1024,
-    top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
+    messages: [
+      {
+        role: "user",
+        content: `${prompt}`,
+      },
+    ],
+    top_p: 0.1,
   });
 
   return resp;
@@ -51,20 +53,8 @@ module.exports = {
 
       // Fetch the API
       const { data } = await getAnswer(prompt);
-      let answer = data.choices[0].text;
+      let answer = data.choices[0].message.content;
       let answers = [];
-
-      // Check the payload
-      if (anongpt_payload) {
-        let index = answer.indexOf("DAN:");
-        if (index !== -1) {
-          answer = answer.substring(index + 4).trim();
-        }
-      } else {
-        if (answer.startsWith("\n\n")) {
-          answer = answer.replace(/^\n\n/, "");
-        }
-      }
 
       // Handling the title if reaching the char limit
       const TITLE_LIMIT = 50;
@@ -85,7 +75,7 @@ module.exports = {
 
       // Create the embed for the answer
       const embed = new EmbedBuilder()
-        .setColor("#" + Math.floor(Math.random() * 16777215).toString(16))
+        .setColor(getRandomPastelColor())
         .setAuthor({
           name: "Anon Q&A",
           iconURL: "attachment://chatgpt_icon.png",
@@ -121,6 +111,7 @@ module.exports = {
       }
     } catch (err) {
       ERROR_LOG(err);
+      errorResponse(interaction, err);
       console.error(err);
     }
   },

@@ -54,20 +54,6 @@ for (const file of commandFiles) {
 const rest = new REST({ version: "10" }).setToken(discord_token);
 (async () => {
   try {
-    // Delete existing commands (prevent duplicate)
-    // await rest
-    //   .put(Routes.applicationCommands(discord_clientId), { body: [] })
-    //   .then(() => PREP_LOG("Successfully deleted all application commands."))
-    //   .catch(console.error);
-
-    // await rest
-    //   .put(
-    //     Routes.applicationGuildCommands(discord_clientId, discord_guildId_dev),
-    //     { body: [] }
-    //   )
-    //   .then(() => PREP_LOG("Successfully deleted all application commands."))
-    //   .catch(console.error);
-
     PREP_LOG(`Started refreshing ${commands.length} application (/) commands.`);
 
     // The put method is used to fully refresh all commands in the guild with the current set

@@ -87,15 +87,9 @@ module.exports = {
           break;
       }
     } catch (err) {
-      if (
-        err.response &&
-        (err.response.status >= 400 || err.response.status <= 499)
-      ) {
-        ERROR_LOG(err);
-        errorResponse(interaction);
-      } else {
-        ERROR_LOG(err);
-      }
+      ERROR_LOG(err);
+      errorResponse(interaction, err);
+      console.error(err);
     }
   },
 };

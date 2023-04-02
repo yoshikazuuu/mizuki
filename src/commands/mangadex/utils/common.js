@@ -3,7 +3,7 @@ const { Events } = require("discord.js");
 const { createCollector } = require("../../../utils/collector");
 const { readChapter } = require("../read");
 const { getListChapters, getMangaTitleAndCover } = require("./api");
-const { ICO } = require("./constants");
+const { ICO_MD } = require("../../../utils/constants");
 const { embedContents, buttons, menu_builder } = require("./ui");
 
 async function paginatedChapterSelector(interaction, id) {
@@ -35,7 +35,7 @@ async function paginatedChapterSelector(interaction, id) {
   let m = await interaction.editReply({
     embeds: [embed],
     components: [button, selector],
-    files: [ICO],
+    files: [ICO_MD],
   });
 
   const collector = createCollector(m, interaction);
@@ -115,7 +115,7 @@ async function updateComponents(
   await i.update({
     embeds: [embed],
     components: [button, selector],
-    files: [ICO],
+    files: [ICO_MD],
   });
 }
 
