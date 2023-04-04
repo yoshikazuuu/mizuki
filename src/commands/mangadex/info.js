@@ -8,6 +8,7 @@ async function subCommandTitleInfo(interaction, title_id) {
   let readingStatus = false;
   const dexData = await getMangaInfo(title_id);
   const coverData = await fetchCoverData(dexData);
+
   const embed = buildEmbed(dexData, coverData, interaction, title_id);
   const btn = info_buttons(
     "Mangadex",

@@ -22,6 +22,6 @@ const rest = new REST({ version: "10" }).setToken(discord_token);
       )
       .catch(console.error);
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 })();

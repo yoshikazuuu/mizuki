@@ -86,7 +86,13 @@ async function paginatedChapterSelector(interaction, id) {
       updated = true;
       readingStatus = true;
       collector.stop();
-      readChapter(interaction, selected, mangaTitle, chapters, dexChapters);
+      await readChapter(
+        interaction,
+        selected,
+        mangaTitle,
+        chapters,
+        dexChapters
+      );
     }
   });
 }

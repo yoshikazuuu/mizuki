@@ -162,27 +162,31 @@ function buildEmbed(dexData, coverData, interaction, title_id) {
     .setThumbnail(
       `https://uploads.mangadex.org/covers/${title_id}/${cover_filename}.256.jpg`
     )
-    .setDescription(md.attributes.description.en)
+    .setDescription(md.attributes.description.en.slice(0, 4095))
     .addFields(
       {
         name: `Formats`,
-        value: `${format}`,
+        value: `${format ? format.slice(0, 1023) : "N/A"}`,
       },
       {
         name: `Genres`,
-        value: `${genres}`,
+        value: `${genres ? genres.slice(0, 1023) : "N/A"}`,
       },
       {
         name: `Status`,
-        value: `${md.attributes.status}`,
+        value: `${md.attributes.status ? md.attributes.status : "N/A"}`,
       },
       {
         name: `Release Year`,
-        value: `${md.attributes.year}`,
+        value: `${md.attributes.year ? md.attributes.year : "N/A"}`,
       },
       {
         name: `Original Languange`,
-        value: `${md.attributes.originalLanguage}`,
+        value: `${
+          md.attributes.originalLanguage
+            ? md.attributes.originalLanguage
+            : "N/A"
+        }`,
       }
     )
     .setTimestamp()

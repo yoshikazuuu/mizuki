@@ -14,7 +14,7 @@ async function getMangaFromChapter(id) {
     return { mangaID };
   } catch (error) {
     console.error(`Error in getMangaFromChapter: ${error}`);
-    throw new Error(`Failed to get manga from chapter ID ${id}`);
+    throw error;
   }
 }
 
@@ -43,7 +43,7 @@ async function searchManga(title) {
     return resp;
   } catch (error) {
     console.error(`Error in searchManga: ${error}`);
-    throw new Error(`Failed to search manga with title ${title}`);
+    throw error;
   }
 }
 
@@ -59,7 +59,7 @@ async function getLinkImage(chapterID) {
     return resp;
   } catch (error) {
     console.error(`Error in getLinkImage: ${error}`);
-    throw new Error(`Failed to get link image for chapter ID ${chapterID}`);
+    throw error;
   }
 }
 
@@ -81,7 +81,7 @@ async function searchChapter(title_id) {
     return resp;
   } catch (error) {
     console.error(`Error in searchChapter: ${error}`);
-    throw new Error(`Failed to search chapter for manga with ID ${title_id}`);
+    throw error;
   }
 }
 
@@ -109,7 +109,7 @@ async function getCover(title_id) {
     return resp;
   } catch (error) {
     console.error(`Error in getCover: ${error}`);
-    throw new Error(`Failed to get cover image for manga with ID ${title_id}`);
+    throw error;
   }
 }
 
