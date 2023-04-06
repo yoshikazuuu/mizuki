@@ -1,5 +1,6 @@
-const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
-const ICO = new AttachmentBuilder("assets/mizuki_sorry.png");
+const { EmbedBuilder } = require("discord.js");
+
+const { MZK } = require("./constants");
 
 async function errorResponse(interaction, message) {
   await interaction.editReply({
@@ -14,7 +15,7 @@ async function errorResponse(interaction, message) {
         })
         .setTimestamp(),
     ],
-    files: [ICO],
+    files: [MZK],
   });
 }
 

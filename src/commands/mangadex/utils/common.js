@@ -1,10 +1,11 @@
 const { Events } = require("discord.js");
 
-const { createCollector } = require("../../../utils/collector");
-const { readChapter } = require("../read");
 const { getListChapters, getMangaTitleAndCover } = require("./api");
+const { embedContents, menuSelectBuilder } = require("./ui");
+const { createCollector } = require("../../../utils/collector");
 const { ICO_MD } = require("../../../utils/constants");
-const { embedContents, buttons, menu_builder } = require("./ui");
+const { menuButtonsBuilder } = require("../../../utils/ui");
+const { readChapter } = require("../read");
 
 async function paginatedChapterSelector(interaction, id) {
   const {
@@ -29,8 +30,8 @@ async function paginatedChapterSelector(interaction, id) {
     true
   );
 
-  let button = buttons(pageNumber, chaptersJSON.length);
-  let selector = menu_builder("Select Chapter", chaptersJSON[pageNumber]);
+  let button = menuButtonsBuilder(pageNumber, chaptersJSON.length);
+  let selector = menuSelectBuilder("Select Chapter", chaptersJSON[pageNumber]);
 
   let m = await interaction.editReply({
     embeds: [embed],
@@ -107,8 +108,11 @@ async function updateComponents(
   chaptersJSON,
   chaptersBold
 ) {
-  const button = buttons(pageNumber, chaptersJSON.length);
-  const selector = menu_builder("Select Chapter", chaptersJSON[pageNumber]);
+  const button = menuButtonsBuilder(pageNumber, chaptersJSON.length);
+  const selector = menuSelectBuilder(
+    "Select Chapter",
+    chaptersJSON[pageNumber]
+  );
   const embed = embedContents(
     interaction,
     id,

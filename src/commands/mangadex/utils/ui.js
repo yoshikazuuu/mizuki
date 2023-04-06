@@ -1,70 +1,19 @@
 const {
   ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   EmbedBuilder,
   StringSelectMenuBuilder,
 } = require("discord.js");
 
-function info_buttons(title_link, source) {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("read")
-      .setEmoji("📖")
-      .setLabel("Read")
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setLabel(title_link)
-      .setStyle(ButtonStyle.Link)
-      .setURL(source)
-  );
-}
-
-function downloadButton() {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("download")
-      .setLabel("Download Chapter")
-      .setStyle(ButtonStyle.Success)
-  );
-}
-
-function buttons(page_number, length) {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("first")
-      .setEmoji("956179957359443988")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("prev")
-      .setEmoji("956179957644685402")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("page_number")
-      .setLabel(`${page_number + 1}/${length}`)
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(true),
-    new ButtonBuilder()
-      .setCustomId("next")
-      .setEmoji("956179957464313876")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("last")
-      .setEmoji("956179957531418655")
-      .setStyle(ButtonStyle.Primary)
-  );
-}
-
-function embed_reader(interaction, page_number, data) {
+function embedMDReaderBuilder(interaction, page_number, data) {
   return new EmbedBuilder()
     .setColor(0xff6740)
     .setAuthor({
       name: "Mangadex Reader",
       iconURL: "attachment://mangadex_icon.png",
     })
+    .setDescription(data.location)
     .setTitle(data.title)
     .setURL(data.source)
-    .setDescription(data.location)
     .setImage(data.image[page_number])
     .setTimestamp()
     .setFooter({
@@ -110,7 +59,7 @@ function embedContents(
     .setTitle(manga_title);
 }
 
-function menu_builder(placeholder, dataJSON) {
+function menuSelectBuilder(placeholder, dataJSON) {
   return new ActionRowBuilder().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId("select")
@@ -162,15 +111,15 @@ function buildEmbed(dexData, coverData, interaction, title_id) {
     .setThumbnail(
       `https://uploads.mangadex.org/covers/${title_id}/${cover_filename}.256.jpg`
     )
-    .setDescription(md.attributes.description.en.slice(0, 4095))
+    .setDescription(md.attributes.description.en.slice(0, 4090).concat("..."))
     .addFields(
       {
         name: `Formats`,
-        value: `${format ? format.slice(0, 1023) : "N/A"}`,
+        value: `${format ? format : "N/A"}`,
       },
       {
         name: `Genres`,
-        value: `${genres ? genres.slice(0, 1023) : "N/A"}`,
+        value: `${genres ? genres.slice(0, 1020).concat("...") : "N/A"}`,
       },
       {
         name: `Status`,
@@ -241,13 +190,10 @@ function embedDownloader(chapterInfo) {
 }
 
 module.exports = {
+  embedMDReaderBuilder,
   embedDownloader,
-  downloadButton,
-  buildSearchEmbed,
-  info_buttons,
-  buttons,
-  embed_reader,
   embedContents,
-  menu_builder,
+  buildSearchEmbed,
   buildEmbed,
+  menuSelectBuilder,
 };

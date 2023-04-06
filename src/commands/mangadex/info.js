@@ -1,8 +1,9 @@
 const { createCollector } = require("../../utils/collector");
 const { getMangaInfo, fetchCoverData } = require("./utils/api");
 const { paginatedChapterSelector } = require("./utils/common");
+const { buildEmbed } = require("./utils/ui");
+const { menuInfoBuilder } = require("../../utils/ui");
 const { ICO_MD } = require("../../utils/constants");
-const { buildEmbed, info_buttons } = require("./utils/ui");
 
 async function subCommandTitleInfo(interaction, title_id) {
   let readingStatus = false;
@@ -10,7 +11,7 @@ async function subCommandTitleInfo(interaction, title_id) {
   const coverData = await fetchCoverData(dexData);
 
   const embed = buildEmbed(dexData, coverData, interaction, title_id);
-  const btn = info_buttons(
+  const btn = menuInfoBuilder(
     "Mangadex",
     `https://mangadex.org/title/${title_id}`
   );

@@ -1,7 +1,7 @@
-const { SlashCommandBuilder } = require("discord.js");
-const { ERROR_LOG } = require("../utils/logger");
-const { EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+
 const { getRandomPastelColor } = require("../utils/color");
+const { ERROR_LOG } = require("../utils/logger");
 
 module.exports = {
   data: new SlashCommandBuilder()

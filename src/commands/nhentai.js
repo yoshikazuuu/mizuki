@@ -1,352 +1,20 @@
-const {
-  SlashCommandBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-} = require("discord.js");
 const axios = require("axios");
-const { COMMAND_LOG, ERROR_LOG } = require("../utils/logger");
-const { errorResponse } = require("../utils/helper");
+const { SlashCommandBuilder } = require("discord.js");
 
-// Require constants
+const { nhenDownloader } = require("./nhentai/download");
+const { nhenInfo } = require("./nhentai/info");
+const { nhenReader } = require("./nhentai/reader");
+const { embedNSFW } = require("./nhentai/utils/ui");
 const {
-  ICO_NH,
-  WRONGUSER,
-  TIMEOUT,
   COOLDOWNS,
   NHENTAI_CUSTOM_ENDPOINT,
   NHENTAI_RANDOM_ENDPOINT,
 } = require("../utils/constants");
+const { errorResponse } = require("../utils/helper");
+const { COMMAND_LOG, ERROR_LOG } = require("../utils/logger");
+const { cooldownEmbed } = require("../utils/ui");
 
-const cooldowns = new Map();
-
-function cooldownEmbed(remainingTime) {
-  return new EmbedBuilder().setColor("#F6C1CC").addFields({
-    name: "Take it slow *nii-sama!*",
-    value: `:exclamation: You can use it again in **${remainingTime / 1000}s**`,
-  });
-}
-
-function info_buttons(title_link, source) {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("read")
-      .setEmoji("📖")
-      .setLabel("Read")
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setLabel(title_link)
-      .setStyle(ButtonStyle.Link)
-      .setURL(source)
-  );
-}
-
-function buttons(page_number, data) {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("first")
-      .setEmoji("956179957359443988")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("prev")
-      .setEmoji("956179957644685402")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("page_number")
-      .setLabel(`${page_number + 1}/${data.data.image.length}`)
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(true),
-    new ButtonBuilder()
-      .setCustomId("next")
-      .setEmoji("956179957464313876")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("last")
-      .setEmoji("956179957531418655")
-      .setStyle(ButtonStyle.Primary)
-  );
-}
-
-function embed_reader(interaction, page_number, data) {
-  return new EmbedBuilder()
-    .setColor(0xed2452)
-    .setAuthor({
-      name: "nHentai Reader",
-      iconURL: "attachment://nhentai_icon.jpg",
-    })
-    .setDescription(`**Artist:** ${data.data.artist.join(", ")}`)
-    .setTitle(data.data.optional_title.pretty)
-    .setURL(data.source)
-    .setImage(data.data.image[page_number])
-    .setTimestamp()
-    .setFooter({
-      text: `Requested by ${interaction.user.username}#${interaction.user.discriminator}`,
-    });
-}
-
-function embed_info(interaction, data) {
-  return new EmbedBuilder()
-    .setColor(0xed2452)
-    .setAuthor({
-      name: "Details",
-      iconURL: "attachment://nhentai_icon.jpg",
-    })
-    .setTitle(data.data.optional_title.pretty)
-    .addFields(
-      {
-        name: `Tags`,
-        value: `${
-          Array.isArray(data.data.tags) && data.data.tags.length
-            ? data.data.tags.join(", ")
-            : "N/A"
-        }`,
-      },
-      {
-        name: `Language`,
-        value: `${
-          Array.isArray(data.data.language) && data.data.language.length
-            ? data.data.language.join(", ")
-            : "N/A"
-        }`,
-      },
-      {
-        name: `Pages`,
-        value: `${data.data.total.length ? data.data.total : "N/A"}`,
-        inline: true,
-      },
-      {
-        name: `Favorites`,
-        value: `${
-          data.data.num_favorites.length ? data.data.num_favorites : "N/A"
-        }`,
-        inline: true,
-      },
-      {
-        name: `Parodies`,
-        value: `${
-          Array.isArray(data.data.parodies) && data.data.parodies.length
-            ? data.data.parodies.join(", ")
-            : "N/A"
-        }`,
-        inline: true,
-      },
-      {
-        name: `Artists`,
-        value: `${
-          Array.isArray(data.data.artist) && data.data.artist.length
-            ? data.data.artist.join(", ")
-            : "N/A"
-        }`,
-        inline: true,
-      },
-      {
-        name: `Group`,
-        value: `${
-          Array.isArray(data.data.group) && data.data.group.length
-            ? data.data.group.join(", ")
-            : "N/A"
-        }`,
-        inline: true,
-      },
-      {
-        name: `Characters`,
-        value: `${
-          Array.isArray(data.data.characters) && data.data.characters.length
-            ? data.data.characters.join(", ")
-            : "N/A"
-        }`,
-        inline: true,
-      }
-    )
-    .setURL(data.source)
-    .setImage(data.data.image[0])
-    .setTimestamp()
-    .setFooter({
-      text: `Requested by ${interaction.user.username}#${interaction.user.discriminator}`,
-    });
-}
-
-async function nhinfo(data, interaction) {
-  let readingStatus = false;
-  const buttons = info_buttons("nHentai", data.source);
-
-  let m = await interaction.followUp({
-    embeds: [embed_info(interaction, data)],
-    components: [buttons],
-    files: [ICO_NH],
-  });
-
-  const filter = (button) => {
-    if (button.user.id !== interaction.member.user.id) {
-      button.reply({ embeds: [WRONGUSER], ephemeral: true });
-      return false;
-    }
-    return true;
-  };
-
-  const collector = m.createMessageComponentCollector({
-    filter,
-    time: TIMEOUT,
-  });
-
-  collector.on("collect", async (i) => {
-    if (i.customId === "read") {
-      readingStatus = true;
-      await i.update({
-        embeds: [embed_info(interaction, data)],
-        components: [buttons],
-        files: [ICO_NH],
-      });
-      collector.stop();
-      return;
-    }
-  });
-
-  collector.on("end", async () => {
-    if (readingStatus) {
-      await nhreader(data, interaction, true);
-    } else {
-      buttons.components[0].setDisabled(true);
-      await m.edit({
-        components: [buttons],
-      });
-    }
-  });
-}
-
-async function nhreader(data, interaction, info) {
-  let m = null;
-  let page_number = 0;
-  let buttons_embed = buttons(page_number, data);
-
-  if (info) {
-    m = await interaction.editReply({
-      embeds: [embed_reader(interaction, page_number, data)],
-      components: [buttons_embed],
-      files: [ICO_NH],
-    });
-  } else {
-    m = await interaction.followUp({
-      embeds: [embed_reader(interaction, page_number, data)],
-      components: [buttons_embed],
-      files: [ICO_NH],
-    });
-  }
-
-  const filter = (button) => {
-    if (button.user.id !== interaction.member.user.id) {
-      button.reply({ embeds: [WRONGUSER], ephemeral: true });
-      return false;
-    }
-    return true;
-  };
-
-  const collector = m.createMessageComponentCollector({
-    filter,
-    time: TIMEOUT,
-  });
-
-  collector.on("collect", async (i) => {
-    collector.resetTimer();
-
-    switch (i.customId) {
-      case "next":
-        page_number = Math.min(page_number + 1, data.data.image.length - 1);
-        break;
-      case "prev":
-        page_number = Math.max(page_number - 1, 0);
-        break;
-      case "first":
-        page_number = 0;
-        break;
-      case "last":
-        page_number = data.data.image.length - 1;
-        break;
-      default:
-        break;
-    }
-
-    buttons_embed = buttons(page_number, data);
-
-    await i.update({
-      embeds: [embed_reader(interaction, page_number, data)],
-      components: [buttons_embed],
-      files: [ICO_NH],
-    });
-  });
-
-  collector.on("end", async () => {
-    for (let i = 0; i < buttons_embed.components.length; i++) {
-      const btn = buttons_embed.components[i];
-      btn.setDisabled(true);
-    }
-    await m.edit({
-      components: [buttons_embed],
-    });
-  });
-}
-
-async function nhDownloader(interaction, data) {
-  let embed;
-  try {
-    // Create an embed to signalling the usert that the chapter is still being downloaded
-    embed = {
-      color: 16741952,
-      title: data.data.title,
-      thumbnail: {
-        url: data.data.image[0],
-      },
-      author: {
-        name: "nHentai Downloader",
-        icon_url: "attachment://nhentai_icon.jpg",
-      },
-      description: `ID: #${data.data.id}`,
-      fields: [
-        {
-          name: "Download link",
-          value: "⚠️ - Downloading...",
-        },
-      ],
-      timestamp: new Date().toISOString(),
-    };
-
-    await interaction.editReply({ embeds: [embed], files: [ICO_NH] });
-
-    // Send POST request to process and zip the chapter
-    const response = await axios({
-      method: "POST",
-      url: `https://yoshi.moe/download/md/${data.data.id}`,
-      timeout: 1000 * 60 * 14,
-    });
-
-    if (response.data.success) {
-      // If zipping is successful, edit the reply with the download link
-      embed.fields[0] = {
-        name: "Download link",
-        value: `✅ - [**Download the chapter here!**](https://yoshi.moe/download/nhen/${data.data.id}.zip) \n You have *5 minutes* before the file expired.`,
-      };
-
-      await interaction.editReply({ embeds: [embed], files: [ICO_NH] });
-    } else {
-      // If zipping failed, edit the reply with an error message
-      embed.fields[0] = {
-        name: "Download link",
-        value: `Error processing the chapter. Please try again later.`,
-      };
-
-      await interaction.editReply({ embeds: [embed], files: [ICO_NH] });
-    }
-  } catch (error) {
-    console.error("Error processing the chapter:", error);
-    embed.fields[0] = {
-      name: "Download link",
-      value: `Error processing the chapter. Please try again later.`,
-    };
-
-    await interaction.editReply({ embeds: [embed], files: [ICO_NH] });
-  }
-}
+// importing constants
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -395,19 +63,17 @@ module.exports = {
     const galleryCode = interaction.options.getString("code");
 
     try {
+      // Check if the channel is NSFW
       if (!interaction.channel.nsfw) {
         await interaction.reply({
-          embeds: [
-            new EmbedBuilder().setColor("#F6C1CC").addFields({
-              name: "NSFW Channel please... *nii-sama!*",
-              value: `Please don't make other people uncomfortable.`,
-            }),
-          ],
+          embeds: [embedNSFW],
           ephemeral: true,
         });
         return;
       }
 
+      // Check if the user is on cooldown
+      const cooldowns = new Map();
       const { id } = interaction.member.user;
       if (cooldowns.has(id)) {
         const cooldown = cooldowns.get(id);
@@ -420,14 +86,14 @@ module.exports = {
         }
       }
       const messageCreated = await interaction.deferReply({ fetchReply: true });
+      cooldowns.set(id, messageCreated.createdTimestamp + COOLDOWNS);
 
+      // Fetch data from nHentai API
       const { data } = await axios.get(
         galleryCode
           ? NHENTAI_CUSTOM_ENDPOINT + galleryCode
           : NHENTAI_RANDOM_ENDPOINT
       );
-
-      cooldowns.set(id, messageCreated.createdTimestamp + COOLDOWNS);
 
       switch (interaction.options.getSubcommand()) {
         case "read":
@@ -436,7 +102,7 @@ module.exports = {
             `/read for ${data.data.optional_title.pretty}`
           );
 
-          nhreader(data, interaction, false);
+          nhenReader(data, interaction, false);
           break;
         case "random":
           COMMAND_LOG(
@@ -444,7 +110,7 @@ module.exports = {
             `/random for ${data.data.optional_title.pretty}`
           );
 
-          nhinfo(data, interaction);
+          nhenInfo(data, interaction);
           break;
         case "info":
           COMMAND_LOG(
@@ -452,12 +118,12 @@ module.exports = {
             `/info for ${data.data.optional_title.pretty}`
           );
 
-          nhinfo(data, interaction);
+          nhenInfo(data, interaction);
           break;
         case "download":
           COMMAND_LOG(interaction, `/download for ${galleryCode}`);
 
-          nhDownloader(interaction, data);
+          nhenDownloader(interaction, data);
           break;
         default:
           break;
@@ -465,9 +131,9 @@ module.exports = {
 
       setTimeout(() => cooldowns.delete(id), COOLDOWNS);
     } catch (err) {
-      ERROR_LOG(err);
-      errorResponse(interaction, err);
       console.error(err);
+      errorResponse(interaction, err);
+      ERROR_LOG(err);
     }
   },
 };

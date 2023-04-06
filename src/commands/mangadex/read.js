@@ -1,8 +1,9 @@
-const { createCollector } = require("../../utils/collector");
-const { getLinkImage, getDataFromChapter } = require("./utils/api");
-const { ICO_MD } = require("../../utils/constants");
 const { subCommandChapterDownload } = require("./download");
-const { buttons, downloadButton, embed_reader } = require("./utils/ui");
+const { getLinkImage, getDataFromChapter } = require("./utils/api");
+const { embedMDReaderBuilder } = require("./utils/ui");
+const { createCollector } = require("../../utils/collector");
+const { ICO_MD } = require("../../utils/constants");
+const { menuButtonsBuilder, downloadButton } = require("../../utils/ui");
 
 async function readChapter(
   interaction,
@@ -33,9 +34,9 @@ async function readChapter(
       index,
     };
 
-    let buttonsEmbed = buttons(pageNumber, dataJSON.image.length);
+    let buttonsEmbed = menuButtonsBuilder(pageNumber, dataJSON.image.length);
     let downloadBtn = downloadButton();
-    let embed = embed_reader(interaction, pageNumber, dataJSON);
+    let embed = embedMDReaderBuilder(interaction, pageNumber, dataJSON);
     let change_chapter = false;
 
     let m = await interaction.editReply({
@@ -72,8 +73,8 @@ async function readChapter(
           break;
       }
 
-      buttonsEmbed = buttons(pageNumber, dataJSON.image.length);
-      embed = embed_reader(interaction, pageNumber, dataJSON);
+      buttonsEmbed = menuButtonsBuilder(pageNumber, dataJSON.image.length);
+      embed = embedMDReaderBuilder(interaction, pageNumber, dataJSON);
 
       if (change_chapter) {
         i.deferUpdate();

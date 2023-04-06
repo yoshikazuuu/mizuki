@@ -1,39 +1,9 @@
-const {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  AttachmentBuilder,
-} = require("discord.js");
-const { Configuration, OpenAIApi } = require("openai");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { ERROR_LOG } = require("../utils/logger");
-const { LLM_MODEL } = require("../utils/constants");
+const { LLM_MODEL, ICO_AI } = require("../utils/constants");
 const { errorResponse } = require("../utils/helper");
-
-// Load the env variables
-const dotenv = require("dotenv");
 const { getRandomPastelColor } = require("../utils/color");
-dotenv.config();
-const openai_token = process.env.OPENAI_TOKEN;
-
-const configuration = new Configuration({
-  apiKey: openai_token,
-});
-const openai = new OpenAIApi(configuration);
-const ico = new AttachmentBuilder("assets/chatgpt_icon.png");
-
-async function getAnswer(prompt) {
-  const resp = await openai.createChatCompletion({
-    model: LLM_MODEL,
-    messages: [
-      {
-        role: "user",
-        content: `${prompt}`,
-      },
-    ],
-    top_p: 0.1,
-  });
-
-  return resp;
-}
+const { getAnswer } = require("../utils/openai");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -47,12 +17,18 @@ module.exports = {
     try {
       // Fetch the prompt from the command
       let prompt = interaction.options.getString("prompt");
+      const messages = [
+        {
+          role: "user",
+          content: `${prompt}`,
+        },
+      ];
 
       // Deferring the reply
       await interaction.deferReply({ ephemeral: true });
 
       // Fetch the API
-      const { data } = await getAnswer(prompt);
+      const { data } = await getAnswer(messages);
       let answer = data.choices[0].message.content;
       let answers = [];
 
@@ -99,14 +75,14 @@ module.exports = {
       });
 
       // Send the answer
-      await interaction.channel.send({ embeds: [embed], files: [ico] });
+      await interaction.channel.send({ embeds: [embed], files: [ICO_AI] });
 
       // Send the follow-up if the answer more than 2000 chars
       for (let i = 1; i < answers.length; i++) {
         embed.setDescription(answers[i]);
         await interaction.followUp({
           embeds: [embed],
-          files: [ico],
+          files: [ICO_AI],
         });
       }
     } catch (err) {

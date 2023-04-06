@@ -1,7 +1,7 @@
 const { REST, Routes } = require("discord.js");
+const dotenv = require("dotenv");
 
 // Load the env variables
-const dotenv = require("dotenv");
 dotenv.config();
 const discord_clientId = process.env.DISCORD_CLIENTID;
 const discord_guildId_dev = process.env.DISCORD_GUILDID_DEV;

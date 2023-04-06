@@ -1,14 +1,11 @@
 const { SlashCommandBuilder } = require("discord.js");
 
-// Mangadex utils
-const { subCommandTitleInfo } = require("./mangadex/info");
-const { subCommandTitleSearch } = require("./mangadex/search");
-const { subCommandChapterRead } = require("./mangadex/read");
 const { subCommandChapterDownload } = require("./mangadex/download");
-
-// Bot utils
-const { COMMAND_LOG, ERROR_LOG } = require("../utils/logger");
+const { subCommandTitleInfo } = require("./mangadex/info");
+const { subCommandChapterRead } = require("./mangadex/read");
+const { subCommandTitleSearch } = require("./mangadex/search");
 const { errorResponse } = require("../utils/helper");
+const { COMMAND_LOG, ERROR_LOG } = require("../utils/logger");
 
 module.exports = {
   data: new SlashCommandBuilder()

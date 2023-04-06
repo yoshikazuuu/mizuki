@@ -8,11 +8,27 @@
     "sourceType": "module",
     "ecmaVersion": 2021
   },
+  "plugins": ["import"],
   "rules": {
     "no-console": "off",
     "indent": ["error", 2, { "SwitchCase": 1 }],
     "linebreak-style": ["error", "windows"],
     "semi": ["warn", "always"],
-    "no-unused-vars": ["warn", { "vars": "local", "args": "after-used", "ignoreRestSiblings": true }]
+    "no-unused-vars": ["warn", { "vars": "local", "args": "after-used", "ignoreRestSiblings": true }],
+    "import/order": [
+      "warn",
+      {
+        "groups": [
+          ["builtin", "external"],
+          "internal",
+          ["parent", "sibling", "index"]
+        ],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ]
   }
 }

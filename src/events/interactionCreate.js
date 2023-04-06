@@ -1,6 +1,7 @@
 const { Events } = require("discord.js");
-const { ERROR_LOG, COMMAND_LOG, ANON_LOG } = require("../utils/logger");
+
 const { errorInteraction } = require("../utils/helper");
+const { ERROR_LOG, COMMAND_LOG, ANON_LOG } = require("../utils/logger");
 
 module.exports = {
   name: Events.InteractionCreate,

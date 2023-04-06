@@ -1,9 +1,10 @@
-const { WRONGUSER, TIMEOUT } = require("./constants");
+const { TIMEOUT } = require("./constants");
+const { wrongUser } = require("./ui");
 
 function createCollector(m, interaction) {
   const filter = (button) => {
     if (button.user.id !== interaction.member.user.id) {
-      button.reply({ embeds: [WRONGUSER], ephemeral: true });
+      button.reply({ embeds: [wrongUser], ephemeral: true });
       return false;
     }
     return true;
