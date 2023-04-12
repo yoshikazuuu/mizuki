@@ -1,8 +1,9 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const { ERROR_LOG } = require("../utils/logger");
+
+const { getRandomPastelColor } = require("../utils/color");
 const { LLM_MODEL, ICO_AI } = require("../utils/constants");
 const { errorResponse } = require("../utils/helper");
-const { getRandomPastelColor } = require("../utils/color");
+const { ERROR_LOG } = require("../utils/logger");
 const { getAnswer } = require("../utils/openai");
 
 module.exports = {

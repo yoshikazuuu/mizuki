@@ -1,9 +1,9 @@
-const { createCollector } = require("../../utils/collector");
 const { getMangaInfo, fetchCoverData } = require("./utils/api");
 const { paginatedChapterSelector } = require("./utils/common");
 const { buildEmbed } = require("./utils/ui");
-const { menuInfoBuilder } = require("../../utils/ui");
+const { createCollector } = require("../../utils/collector");
 const { ICO_MD } = require("../../utils/constants");
+const { menuInfoBuilder } = require("../../utils/ui");
 
 async function subCommandTitleInfo(interaction, title_id) {
   let readingStatus = false;

@@ -1,4 +1,5 @@
 const axios = require("axios");
+
 const { MANGADEX_ENDPOINT } = require("../../../utils/constants");
 
 async function getMangaFromChapter(id) {

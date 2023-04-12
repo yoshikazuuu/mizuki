@@ -100,7 +100,7 @@ function embedInfoBuilder(interaction, data) {
 }
 
 const embedNSFW = new EmbedBuilder()
-  .setColor(16178444)
+  .setColor(16171468)
   .setTitle("NSFW Channel please... *nii-sama!*")
   .setDescription("Please don't make other people uncomfortable.");
 

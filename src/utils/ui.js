@@ -53,7 +53,7 @@ function menuButtonsBuilder(page_number, length) {
 }
 
 const wrongUser = new EmbedBuilder()
-  .setColor(16178444)
+  .setColor(16171468)
   .setTitle("You Really Thought Huh?")
   .setDescription(
     "Only the one who activated this command can click the button."

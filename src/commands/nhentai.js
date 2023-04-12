@@ -14,8 +14,6 @@ const { errorResponse } = require("../utils/helper");
 const { COMMAND_LOG, ERROR_LOG } = require("../utils/logger");
 const { cooldownEmbed } = require("../utils/ui");
 
-// importing constants
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("nhen")
