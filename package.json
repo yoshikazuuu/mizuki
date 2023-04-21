@@ -6,8 +6,7 @@
   "scripts": {
     "deploy": "mkdir -p logs && nodemon .",
     "dev": "nodemon src/app_dev.js",
-    "delete": "node src/delete_app.js",
-    "release": "git push && git push origin main:release"
+    "delete": "node src/delete_app.js"
   },
   "keywords": [],
   "author": "",

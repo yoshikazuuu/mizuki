@@ -12,7 +12,7 @@ A discord bot that has a cute side to it. 🎀
 
 ### Invite the bot
 
-If you want to just use it, you can [invite](https://discord.com/api/oauth2/authorize?client_id=1071942056047554670&permissions=2148133888&scope=bot%20applications.commands) the bot directly into your server.
+If you want to just use it, you can [invite](https://discord.com/api/oauth2/authorize?client_id=1071942056047554670&permissions=277028587520&scope=bot%20applications.commands) the bot directly into your server.
 
 ### Deploy it yourself
 
