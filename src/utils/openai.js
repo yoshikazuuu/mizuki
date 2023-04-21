@@ -4,16 +4,16 @@ const { Configuration, OpenAIApi } = require("openai");
 const { LLM_MODEL } = require("./constants");
 
 dotenv.config();
-const openai_token = process.env.OPENAI_TOKEN;
+
 const configuration = new Configuration({
-  apiKey: openai_token,
+  apiKey: process.env.OPENAI_TOKEN,
 });
 const openai = new OpenAIApi(configuration);
 
 async function getAnswer(messages) {
   const resp = await openai.createChatCompletion({
     model: LLM_MODEL,
-    messages: [messages],
+    messages: messages,
     top_p: 0.1,
   });
 
