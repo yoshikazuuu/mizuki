@@ -59,12 +59,14 @@ const wrongUser = new EmbedBuilder()
     "Only the one who activated this command can click the button."
   );
 
-const downloadButton = new ActionRowBuilder().addComponents(
-  new ButtonBuilder()
-    .setCustomId("download")
-    .setLabel("Download Chapter")
-    .setStyle(ButtonStyle.Success)
-);
+function downloadButton() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("download")
+      .setLabel("Download Chapter")
+      .setStyle(ButtonStyle.Success)
+  );
+}
 
 module.exports = {
   wrongUser,

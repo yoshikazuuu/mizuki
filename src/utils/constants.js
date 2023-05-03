@@ -8,7 +8,7 @@ const ICO_MD = new AttachmentBuilder("assets/mangadex_icon.png");
 const ICO_NH = new AttachmentBuilder("assets/nhentai_icon.jpg");
 const ICO_AI = new AttachmentBuilder("assets/chatgpt_icon.png");
 const MZK = new AttachmentBuilder("assets/mizuki_sorry.png");
-const TIMEOUT = 5 * 1000;
+const TIMEOUT = 15 * 60 * 1000;
 const COOLDOWNS = 15 * 1000;
 const LLM_MODEL = "gpt-3.5-turbo";
 

@@ -1,10 +1,11 @@
+const Canvas = require("@napi-rs/canvas");
 const {
   SlashCommandBuilder,
   AttachmentBuilder,
   EmbedBuilder,
 } = require("discord.js");
+
 const { ERROR_LOG } = require("../utils/logger");
-const Canvas = require("@napi-rs/canvas");
 
 module.exports = {
   data: new SlashCommandBuilder()

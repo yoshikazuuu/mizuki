@@ -1,7 +1,7 @@
 const { Events } = require("discord.js");
 const { searchManga, mapDexDataToJSON } = require("./utils/api");
 const { ICO_MD } = require("../../utils/constants");
-const { buildSearchEmbed, menu_builder } = require("./utils/ui");
+const { buildSearchEmbed, menuSelectBuilder } = require("./utils/ui");
 const { subCommandTitleInfo } = require("./info");
 
 // This code is used to search for titles and returns the data of the titles that match the search query
@@ -37,7 +37,7 @@ async function subCommandTitleSearch(interaction, title) {
     // Check if the search returns null
     let menu;
     if (titlesJSON.length > 0) {
-      menu = menu_builder("Select Title", titlesJSON);
+      menu = menuSelectBuilder("Select Title", titlesJSON);
     }
 
     await interaction.editReply({
